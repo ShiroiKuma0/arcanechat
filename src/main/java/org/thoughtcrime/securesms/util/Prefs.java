@@ -50,6 +50,11 @@ public class Prefs {
   public static final String COLOR_LIST_PREVIEW_PREF = "pref_color_list_preview";
   public static final String COLOR_FAB_PREF = "pref_color_fab";
   public static final String ACCENT_PREF = "pref_accent";
+  // shiroikuma fork (Step 6): chat-list row style.
+  public static final String CHATLIST_STYLE_PREF = "pref_chatlist_style";
+  public static final String CHATLIST_CARDS = "cards";
+  public static final String CHATLIST_DIVIDERS = "dividers";
+  public static final String CHATLIST_PLAIN = "plain";
   public static final int COLOR_YELLOW = 0xFFFFFF00;
   public static final int COLOR_BLACK = 0xFF000000;
 
@@ -155,6 +160,15 @@ public class Prefs {
 
   public static void setAccent(Context context, String value) {
     setStringPreference(context, ACCENT_PREF, value);
+  }
+
+  // shiroikuma fork (Step 6): chat-list row style ("cards" default = the Step 5 look).
+  public static String getChatListStyle(Context context) {
+    return getStringPreference(context, CHATLIST_STYLE_PREF, CHATLIST_CARDS);
+  }
+
+  public static void setChatListStyle(Context context, String value) {
+    setStringPreference(context, CHATLIST_STYLE_PREF, value);
   }
 
   // Direction-aware overloads (Step 4). Default to the legacy shared value above.
