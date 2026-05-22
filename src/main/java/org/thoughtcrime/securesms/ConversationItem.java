@@ -80,6 +80,7 @@ import org.thoughtcrime.securesms.util.LongClickCopySpan;
 import org.thoughtcrime.securesms.util.LongClickMovementMethod;
 import org.thoughtcrime.securesms.util.MarkdownUtil;
 import org.thoughtcrime.securesms.util.Prefs;
+import org.thoughtcrime.securesms.util.FontUtil;
 import org.thoughtcrime.securesms.util.MediaUtil;
 import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.ViewUtil;
@@ -478,6 +479,12 @@ public class ConversationItem extends BaseConversationItem {
     }
     // shiroikuma fork (Step 2): configurable message-text colour (overrides the theme attr).
     bodyText.setTextColor(Prefs.getMessageTextColor(context));
+    // shiroikuma fork (Step 3): configurable chat-text font (family + weight + size).
+    FontUtil.apply(
+        bodyText,
+        Prefs.getFontFamily(context, Prefs.FONT_CHAT_TEXT),
+        Prefs.getFontWeight(context, Prefs.FONT_CHAT_TEXT),
+        Prefs.getFontSize(context, Prefs.FONT_CHAT_TEXT));
 
     int downloadState = messageRecord.getDownloadState();
     if (downloadState == DcMsg.DC_DOWNLOAD_AVAILABLE
