@@ -53,5 +53,32 @@
             android:title="@string/pref_color_fab"
             android:persistent="false" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_fonts_category">
+        <Preference
+            android:key="pref_font_chat_text"
+            android:title="@string/pref_font_chat_text"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_conv_title"
+            android:title="@string/pref_font_conv_title"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_list_title"
+            android:title="@string/pref_font_list_title"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_list_preview"
+            android:title="@string/pref_font_list_preview"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_settings"
+            android:title="@string/pref_font_settings"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_add"
+            android:title="@string/pref_font_add"
+            android:summary="@string/pref_font_add_summary"
+            android:persistent="false" />
+    </PreferenceCategory>
 
 </PreferenceScreen>

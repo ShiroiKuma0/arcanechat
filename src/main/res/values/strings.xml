@@ -839,6 +839,15 @@
     <string name="pref_color_list_title">Chat list title</string>
     <string name="pref_color_list_preview">Chat list preview</string>
     <string name="pref_color_fab">New-chat button (FAB)</string>
+    <!-- shiroikuma fork (Step 3): configurable fonts -->
+    <string name="pref_fonts_category">Fonts</string>
+    <string name="pref_font_chat_text">Chat text</string>
+    <string name="pref_font_conv_title">Conversation title</string>
+    <string name="pref_font_list_title">Chat-list title</string>
+    <string name="pref_font_list_preview">Chat-list preview</string>
+    <string name="pref_font_settings">Settings</string>
+    <string name="pref_font_add">Add custom font…</string>
+    <string name="pref_font_add_summary">Pick a .ttf/.otf file to use in any category</string>
     <string name="pref_background_btn_default">Use Default Image</string>
     <string name="pref_background_btn_gallery">Select From Gallery</string>
     <!-- deprecated -->
