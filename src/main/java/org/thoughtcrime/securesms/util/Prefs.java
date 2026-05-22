@@ -49,6 +49,7 @@ public class Prefs {
   public static final String COLOR_LIST_TITLE_PREF = "pref_color_list_title";
   public static final String COLOR_LIST_PREVIEW_PREF = "pref_color_list_preview";
   public static final String COLOR_FAB_PREF = "pref_color_fab";
+  public static final String ACCENT_PREF = "pref_accent";
   public static final int COLOR_YELLOW = 0xFFFFFF00;
   public static final int COLOR_BLACK = 0xFF000000;
 
@@ -144,6 +145,16 @@ public class Prefs {
 
   public static void setMessageTextColor(Context context, int color) {
     setIntegerPreference(context, COLOR_MESSAGE_TEXT_PREF, color);
+  }
+
+  // shiroikuma fork (Step 4b): accent preset key (drives colorAccent/control attrs + popup colours
+  // via a theme overlay applied in DynamicTheme). Default "yellow" = the Step 1 look.
+  public static String getAccent(Context context) {
+    return getStringPreference(context, ACCENT_PREF, "yellow");
+  }
+
+  public static void setAccent(Context context, String value) {
+    setStringPreference(context, ACCENT_PREF, value);
   }
 
   // Direction-aware overloads (Step 4). Default to the legacy shared value above.
