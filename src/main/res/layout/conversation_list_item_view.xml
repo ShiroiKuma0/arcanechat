@@ -7,7 +7,11 @@
     android:focusable="true"
     android:nextFocusRight="@+id/fab"
     android:nextFocusLeft="@+id/container"
-    android:layout_height="72dp">
+    android:minHeight="72dp"
+    android:layout_height="wrap_content"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp"><!-- shiroikuma fork (Step 3): was fixed 72dp; wrap+minHeight so a larger
+         chat-list font grows the row instead of clipping into the next one -->
 
     <org.thoughtcrime.securesms.components.AvatarView
         android:id="@+id/avatar"
@@ -24,9 +28,11 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
         android:layout_toRightOf="@id/avatar"
-        android:layout_toEndOf="@id/avatar">
+        android:layout_toEndOf="@id/avatar"><!-- shiroikuma fork (Step 3): wrap_content + centerVertical
+            (was match_parent) so the row height follows the text size -->
 
         <LinearLayout
             android:orientation="vertical"
