@@ -19,6 +19,8 @@
     <color name="acc_red">#FF1744</color>
     <color name="acc_magenta">#FF44FF</color>
     <color name="acc_blue">#448AFF</color>
+    <!-- shiroikuma fork (Step 7): subtle fill for the "Filled card" chat-list style. -->
+    <color name="card_fill_tint">#1FFFEA00</color>
     <color name="def_outgoing_bubble">@color/purple_outgoing_bubble</color>
     <color name="def_outgoing_label">@color/purple_outgoing_label</color>
     <color name="def_unreadcount">@color/purple_unreadcount</color>
