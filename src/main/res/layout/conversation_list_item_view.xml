@@ -9,9 +9,13 @@
     android:nextFocusLeft="@+id/container"
     android:minHeight="72dp"
     android:layout_height="wrap_content"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp"><!-- shiroikuma fork (Step 3): was fixed 72dp; wrap+minHeight so a larger
-         chat-list font grows the row instead of clipping into the next one -->
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"><!-- shiroikuma fork: Step 3 wrap+minHeight (font growth); Step 5
+         margins make the gap between the rounded-card rows (background drawable draws the card) -->
 
     <org.thoughtcrime.securesms.components.AvatarView
         android:id="@+id/avatar"
@@ -146,6 +150,8 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_alignParentBottom="true"
-        android:background="?attr/conversation_list_item_divider" />
+        android:visibility="gone"
+        android:background="?attr/conversation_list_item_divider" /><!-- shiroikuma fork (Step 5):
+        hidden - the rounded card border separates rows now; id kept for hideItemDivider() -->
 
 </org.thoughtcrime.securesms.ConversationListItem>
