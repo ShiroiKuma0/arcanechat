@@ -327,7 +327,7 @@
         <item name="android:popupMenuStyle">@style/Widget.Shiroikuma.PopupMenu</item>
         <item name="actionOverflowMenuStyle">@style/Widget.Shiroikuma.PopupMenu.Overflow</item>
         <item name="android:colorBackground">#000000</item>
-        <item name="android:textColorPrimary">@color/def_text</item>
+        <item name="android:textColorPrimary">?attr/colorAccent</item>
     </style>
     <style name="Widget.Shiroikuma.PopupMenu" parent="@style/Widget.AppCompat.PopupMenu">
         <item name="android:popupBackground">@drawable/dialog_yellow_border</item>
@@ -335,5 +335,50 @@
     <style name="Widget.Shiroikuma.PopupMenu.Overflow" parent="@style/Widget.AppCompat.PopupMenu.Overflow">
         <item name="android:popupBackground">@drawable/dialog_yellow_border</item>
         <item name="overlapAnchor">false</item>
+    </style>
+
+    <!-- shiroikuma fork (Step 4b): accent presets. Each is a theme overlay applied at activity
+         creation (DynamicTheme) on top of the base theme. Setting the three control attrs is enough
+         because the popup border (dialog_yellow_border) and popup text both reference
+         ?attr/colorAccent, so they follow the chosen accent automatically. -->
+    <style name="ThemeOverlay.Shiroikuma.Accent.Yellow" parent="">
+        <item name="colorAccent">@color/acc_yellow</item>
+        <item name="colorControlActivated">@color/acc_yellow</item>
+        <item name="colorControlHighlight">@color/acc_yellow</item>
+    </style>
+    <style name="ThemeOverlay.Shiroikuma.Accent.White" parent="">
+        <item name="colorAccent">@color/acc_white</item>
+        <item name="colorControlActivated">@color/acc_white</item>
+        <item name="colorControlHighlight">@color/acc_white</item>
+    </style>
+    <style name="ThemeOverlay.Shiroikuma.Accent.Cyan" parent="">
+        <item name="colorAccent">@color/acc_cyan</item>
+        <item name="colorControlActivated">@color/acc_cyan</item>
+        <item name="colorControlHighlight">@color/acc_cyan</item>
+    </style>
+    <style name="ThemeOverlay.Shiroikuma.Accent.Green" parent="">
+        <item name="colorAccent">@color/acc_green</item>
+        <item name="colorControlActivated">@color/acc_green</item>
+        <item name="colorControlHighlight">@color/acc_green</item>
+    </style>
+    <style name="ThemeOverlay.Shiroikuma.Accent.Orange" parent="">
+        <item name="colorAccent">@color/acc_orange</item>
+        <item name="colorControlActivated">@color/acc_orange</item>
+        <item name="colorControlHighlight">@color/acc_orange</item>
+    </style>
+    <style name="ThemeOverlay.Shiroikuma.Accent.Red" parent="">
+        <item name="colorAccent">@color/acc_red</item>
+        <item name="colorControlActivated">@color/acc_red</item>
+        <item name="colorControlHighlight">@color/acc_red</item>
+    </style>
+    <style name="ThemeOverlay.Shiroikuma.Accent.Magenta" parent="">
+        <item name="colorAccent">@color/acc_magenta</item>
+        <item name="colorControlActivated">@color/acc_magenta</item>
+        <item name="colorControlHighlight">@color/acc_magenta</item>
+    </style>
+    <style name="ThemeOverlay.Shiroikuma.Accent.Blue" parent="">
+        <item name="colorAccent">@color/acc_blue</item>
+        <item name="colorControlActivated">@color/acc_blue</item>
+        <item name="colorControlHighlight">@color/acc_blue</item>
     </style>
 </resources>
