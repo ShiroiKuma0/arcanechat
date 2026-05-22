@@ -31,6 +31,19 @@ public class Prefs {
   public static final String LANGUAGE_PREF = "pref_language";
   public static final String BACKGROUND_PREF = "pref_chat_background";
 
+  // shiroikuma fork (Step 2): per-surface configurable colours. Each role is an ARGB int stored
+  // in default SharedPreferences; defaults reproduce the Step 1 yellow-on-black palette. Applied
+  // per-surface in code (a runtime Resources colour override does NOT reach theme/attr resolution).
+  public static final String COLOR_MESSAGE_TEXT_PREF = "pref_color_message_text";
+  public static final String COLOR_BUBBLE_FILL_PREF = "pref_color_bubble_fill";
+  public static final String COLOR_BUBBLE_BORDER_PREF = "pref_color_bubble_border";
+  public static final String COLOR_CONVERSATION_BG_PREF = "pref_color_conversation_bg";
+  public static final String COLOR_LIST_TITLE_PREF = "pref_color_list_title";
+  public static final String COLOR_LIST_PREVIEW_PREF = "pref_color_list_preview";
+  public static final String COLOR_FAB_PREF = "pref_color_fab";
+  public static final int COLOR_YELLOW = 0xFFFFFF00;
+  public static final int COLOR_BLACK = 0xFF000000;
+
   private static final String DATABASE_ENCRYPTED_SECRET =
       "pref_database_encrypted_secret_"; // followed by account-id
   private static final String DATABASE_UNENCRYPTED_SECRET =
@@ -118,6 +131,63 @@ public class Prefs {
 
   public static int getProfileAvatarId(Context context) {
     return getIntegerPreference(context, PROFILE_AVATAR_ID_PREF, 0);
+  }
+
+  // shiroikuma fork (Step 2): configurable colour roles.
+  public static int getMessageTextColor(Context context) {
+    return getIntegerPreference(context, COLOR_MESSAGE_TEXT_PREF, COLOR_YELLOW);
+  }
+
+  public static void setMessageTextColor(Context context, int color) {
+    setIntegerPreference(context, COLOR_MESSAGE_TEXT_PREF, color);
+  }
+
+  public static int getBubbleFillColor(Context context) {
+    return getIntegerPreference(context, COLOR_BUBBLE_FILL_PREF, COLOR_BLACK);
+  }
+
+  public static void setBubbleFillColor(Context context, int color) {
+    setIntegerPreference(context, COLOR_BUBBLE_FILL_PREF, color);
+  }
+
+  public static int getBubbleBorderColor(Context context) {
+    return getIntegerPreference(context, COLOR_BUBBLE_BORDER_PREF, COLOR_YELLOW);
+  }
+
+  public static void setBubbleBorderColor(Context context, int color) {
+    setIntegerPreference(context, COLOR_BUBBLE_BORDER_PREF, color);
+  }
+
+  public static int getConversationBackgroundColor(Context context) {
+    return getIntegerPreference(context, COLOR_CONVERSATION_BG_PREF, COLOR_BLACK);
+  }
+
+  public static void setConversationBackgroundColor(Context context, int color) {
+    setIntegerPreference(context, COLOR_CONVERSATION_BG_PREF, color);
+  }
+
+  public static int getListTitleColor(Context context) {
+    return getIntegerPreference(context, COLOR_LIST_TITLE_PREF, COLOR_YELLOW);
+  }
+
+  public static void setListTitleColor(Context context, int color) {
+    setIntegerPreference(context, COLOR_LIST_TITLE_PREF, color);
+  }
+
+  public static int getListPreviewColor(Context context) {
+    return getIntegerPreference(context, COLOR_LIST_PREVIEW_PREF, COLOR_YELLOW);
+  }
+
+  public static void setListPreviewColor(Context context, int color) {
+    setIntegerPreference(context, COLOR_LIST_PREVIEW_PREF, color);
+  }
+
+  public static int getFabColor(Context context) {
+    return getIntegerPreference(context, COLOR_FAB_PREF, COLOR_YELLOW);
+  }
+
+  public static void setFabColor(Context context, int color) {
+    setIntegerPreference(context, COLOR_FAB_PREF, color);
   }
 
   public static int getNotificationPriority(Context context) {

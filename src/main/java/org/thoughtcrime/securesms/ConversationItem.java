@@ -79,6 +79,7 @@ import org.thoughtcrime.securesms.util.Linkifier;
 import org.thoughtcrime.securesms.util.LongClickCopySpan;
 import org.thoughtcrime.securesms.util.LongClickMovementMethod;
 import org.thoughtcrime.securesms.util.MarkdownUtil;
+import org.thoughtcrime.securesms.util.Prefs;
 import org.thoughtcrime.securesms.util.MediaUtil;
 import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.ViewUtil;
@@ -481,6 +482,8 @@ public class ConversationItem extends BaseConversationItem {
         }
       }
     }
+    // shiroikuma fork (Step 2): configurable message-text colour (overrides the theme attr).
+    bodyText.setTextColor(Prefs.getMessageTextColor(context));
 
     int downloadState = messageRecord.getDownloadState();
     if (downloadState == DcMsg.DC_DOWNLOAD_AVAILABLE
@@ -998,6 +1001,21 @@ public class ConversationItem extends BaseConversationItem {
             ? R.drawable.message_bubble_background_sent_alone
             : R.drawable.message_bubble_background_received_alone;
     bodyBubble.setBackgroundResource(background);
+    // shiroikuma fork (Step 2): configurable bubble fill + border. The MULTIPLY tint applied in
+    // setBubbleState is white (identity) in the dark theme, so mutating the shape's own fill/stroke
+    // here is what renders.
+    android.graphics.drawable.Drawable bg = bodyBubble.getBackground();
+    if (bg instanceof android.graphics.drawable.LayerDrawable) {
+      android.graphics.drawable.Drawable inner =
+          ((android.graphics.drawable.LayerDrawable) bg.mutate()).getDrawable(0);
+      if (inner instanceof android.graphics.drawable.GradientDrawable) {
+        android.graphics.drawable.GradientDrawable gd =
+            (android.graphics.drawable.GradientDrawable) inner;
+        gd.setColor(Prefs.getBubbleFillColor(context));
+        int strokePx = Math.max(1, Math.round(getResources().getDisplayMetrics().density));
+        gd.setStroke(strokePx, Prefs.getBubbleBorderColor(context));
+      }
+    }
   }
 
   private void setMessageSpacing(@NonNull Context context) {

@@ -50,6 +50,7 @@ import org.thoughtcrime.securesms.mms.GlideRequests;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.search.QrInviteData;
 import org.thoughtcrime.securesms.util.DateUtils;
+import org.thoughtcrime.securesms.util.Prefs;
 import org.thoughtcrime.securesms.util.ThemeUtil;
 import org.thoughtcrime.securesms.util.Util;
 import org.thoughtcrime.securesms.util.ViewUtil;
@@ -128,14 +129,15 @@ public class ConversationListItem extends RelativeLayout
     } else {
       this.fromView.setText(recipient, state != DcMsg.DC_STATE_IN_FRESH);
     }
+    // shiroikuma fork (Step 2): configurable chat-list title colour (also forces a uniform colour
+    // regardless of the per-recipient styling FromTextView would otherwise apply).
+    this.fromView.setTextColor(Prefs.getListTitleColor(getContext()));
 
     subjectView.setVisibility(chatId == DcChat.DC_CHAT_ID_ARCHIVED_LINK ? GONE : VISIBLE);
     this.subjectView.setText(thread.getDisplayBody());
     this.subjectView.setTypeface(state == DcMsg.DC_STATE_IN_FRESH ? BOLD_TYPEFACE : LIGHT_TYPEFACE);
-    this.subjectView.setTextColor(
-        state == DcMsg.DC_STATE_IN_FRESH
-            ? ThemeUtil.getThemedColor(getContext(), R.attr.conversation_list_item_unread_color)
-            : ThemeUtil.getThemedColor(getContext(), R.attr.conversation_list_item_subject_color));
+    // shiroikuma fork (Step 2): configurable chat-list preview/snippet colour.
+    this.subjectView.setTextColor(Prefs.getListPreviewColor(getContext()));
 
     if (thread.getDate() > 0) {
       CharSequence date = DateUtils.getBriefRelativeTimeSpanString(getContext(), thread.getDate());
