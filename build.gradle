@@ -134,6 +134,7 @@ android {
         foss {
             dimension "none"
             buildConfigField "boolean", "USE_PLAY_SERVICES", "false"
+            applicationId "shiroikuma.arcanechat"
         }
         gplay {
             dimension "none"
