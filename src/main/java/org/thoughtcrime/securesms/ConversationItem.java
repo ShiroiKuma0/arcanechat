@@ -478,7 +478,7 @@ public class ConversationItem extends BaseConversationItem {
       }
     }
     // shiroikuma fork (Step 2): configurable message-text colour (overrides the theme attr).
-    bodyText.setTextColor(Prefs.getMessageTextColor(context));
+    bodyText.setTextColor(Prefs.getMessageTextColor(context, messageRecord.isOutgoing()));
     // shiroikuma fork (Step 3): configurable chat-text font (family + weight + size).
     FontUtil.apply(
         bodyText,
@@ -1005,9 +1005,9 @@ public class ConversationItem extends BaseConversationItem {
       if (inner instanceof android.graphics.drawable.GradientDrawable) {
         android.graphics.drawable.GradientDrawable gd =
             (android.graphics.drawable.GradientDrawable) inner;
-        gd.setColor(Prefs.getBubbleFillColor(context));
+        gd.setColor(Prefs.getBubbleFillColor(context, current.isOutgoing()));
         int strokePx = Math.max(1, Math.round(getResources().getDisplayMetrics().density));
-        gd.setStroke(strokePx, Prefs.getBubbleBorderColor(context));
+        gd.setStroke(strokePx, Prefs.getBubbleBorderColor(context, current.isOutgoing()));
       }
     }
   }
