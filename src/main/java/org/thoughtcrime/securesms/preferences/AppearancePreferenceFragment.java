@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import java.util.Arrays;
@@ -23,6 +25,33 @@ public class AppearancePreferenceFragment extends ListSummaryPreferenceFragment 
     initializeListSummary((ListPreference) findPreference(Prefs.THEME_PREF));
     this.findPreference(Prefs.BACKGROUND_PREF)
         .setOnPreferenceClickListener(new BackgroundClickListener());
+
+    initializeLanguagePref();
+  }
+
+  // shiroikuma fork: in-app language override via AndroidX per-app locales.
+  // AppCompatDelegate is the single source of truth (persisted by the manifest
+  // AppLocalesMetadataHolderService on API < 33, by the framework on API 33+),
+  // so the ListPreference is non-persistent and just mirrors the current locale.
+  private void initializeLanguagePref() {
+    ListPreference languagePref = (ListPreference) findPreference(Prefs.LANGUAGE_PREF);
+    if (languagePref == null) return;
+
+    LocaleListCompat current = AppCompatDelegate.getApplicationLocales();
+    languagePref.setValue(current.isEmpty() ? "" : current.get(0).toLanguageTag());
+
+    languagePref.setOnPreferenceChangeListener(
+        (preference, value) -> {
+          String tag = value == null ? "" : value.toString();
+          LocaleListCompat locales =
+              tag.isEmpty()
+                  ? LocaleListCompat.getEmptyLocaleList()
+                  : LocaleListCompat.forLanguageTags(tag);
+          updateListSummary(preference, value);
+          AppCompatDelegate.setApplicationLocales(locales);
+          return true;
+        });
+    initializeListSummary(languagePref);
   }
 
   @Override
