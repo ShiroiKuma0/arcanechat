@@ -62,6 +62,21 @@ public class AppearancePreferenceFragment extends ListSummaryPreferenceFragment 
     this.findPreference(Prefs.BACKGROUND_PREF)
         .setOnPreferenceClickListener(new BackgroundClickListener());
 
+    // shiroikuma fork (Step 6): chat-list row style - saved here, applied at bind time by
+    // ConversationListItem; the list repaints on return via ConversationListFragment.onResume.
+    ListPreference chatListStylePref = (ListPreference) findPreference(Prefs.CHATLIST_STYLE_PREF);
+    if (chatListStylePref != null) {
+      chatListStylePref.setValue(Prefs.getChatListStyle(getContext()));
+      chatListStylePref.setSummary(chatListStylePref.getEntry());
+      chatListStylePref.setOnPreferenceChangeListener(
+          (p, value) -> {
+            Prefs.setChatListStyle(getContext(), (String) value);
+            int idx = chatListStylePref.findIndexOfValue((String) value);
+            if (idx >= 0) p.setSummary(chatListStylePref.getEntries()[idx]);
+            return false;
+          });
+    }
+
     // shiroikuma fork (Step 4b): accent preset picker - applies on recreate via DynamicTheme.
     ListPreference accentPref = (ListPreference) findPreference(Prefs.ACCENT_PREF);
     if (accentPref != null) {

@@ -354,13 +354,55 @@ public class ConversationListItem extends RelativeLayout
   }
 
   private void setBgColor(ThreadRecord thread) {
-    int bg = R.attr.conversation_list_item_background;
-    if (thread != null && thread.getVisibility() == DcChat.DC_CHAT_VISIBILITY_PINNED) {
-      bg = R.attr.pinned_list_item_background;
+    boolean pinned =
+        thread != null && thread.getVisibility() == DcChat.DC_CHAT_VISIBILITY_PINNED;
+    // shiroikuma fork (Step 6): chat-list row style - cards / dividers / plain.
+    String style = Prefs.getChatListStyle(getContext());
+    boolean cards = Prefs.CHATLIST_CARDS.equals(style);
+
+    if (cards) {
+      int d =
+          pinned
+              ? R.drawable.pinned_list_item_card_background
+              : R.drawable.conversation_list_item_card_background;
+      ViewUtil.setBackground(this, getContext().getDrawable(d));
+    } else {
+      int bg = pinned ? R.attr.pinned_list_item_background : R.attr.conversation_list_item_background;
+      try (TypedArray ta = getContext().obtainStyledAttributes(new int[] {bg})) {
+        ViewUtil.setBackground(this, ta.getDrawable(0));
+      }
     }
-    try (TypedArray ta = getContext().obtainStyledAttributes(new int[] {bg})) {
-      ViewUtil.setBackground(this, ta.getDrawable(0));
+
+    // Card style needs a gap between rows; the others sit flush.
+    if (getLayoutParams() instanceof android.view.ViewGroup.MarginLayoutParams) {
+      android.view.ViewGroup.MarginLayoutParams lp =
+          (android.view.ViewGroup.MarginLayoutParams) getLayoutParams();
+      int h = cards ? dpToPx(8) : 0;
+      int v = cards ? dpToPx(4) : 0;
+      lp.setMargins(h, v, h, v);
+      setLayoutParams(lp);
     }
+
+    // Divider: hidden for cards; accent line for "dividers"; faint default line for "plain".
+    View divider = findViewById(R.id.item_divider);
+    if (divider != null) {
+      if (cards) {
+        divider.setVisibility(View.GONE);
+      } else {
+        divider.setVisibility(View.VISIBLE);
+        int attr =
+            Prefs.CHATLIST_DIVIDERS.equals(style)
+                ? R.attr.colorAccent
+                : R.attr.conversation_list_item_divider;
+        try (TypedArray ta = getContext().obtainStyledAttributes(new int[] {attr})) {
+          divider.setBackgroundColor(ta.getColor(0, 0));
+        }
+      }
+    }
+  }
+
+  private int dpToPx(int dp) {
+    return Math.round(dp * getResources().getDisplayMetrics().density);
   }
 
   private Spanned getHighlightedSpan(@Nullable String value, @Nullable String highlight) {
