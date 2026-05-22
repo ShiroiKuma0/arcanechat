@@ -848,6 +848,15 @@
     <string name="pref_backup_written_to_x">Backup written successfully to \"%1$s\".</string>
     <!-- No need to translate "Wallpaper" literally. Chose what is common in your language for a "Wallpaper" or a "Background". Avoid adding the term "image" here, as the "Wallpaper" may also be just a single color. -->
     <string name="pref_background">Wallpaper</string>
+    <!-- shiroikuma fork (Step 2): configurable colours -->
+    <string name="pref_colors_category">Colours</string>
+    <string name="pref_color_message_text">Message text</string>
+    <string name="pref_color_bubble_fill">Bubble fill</string>
+    <string name="pref_color_bubble_border">Bubble border</string>
+    <string name="pref_color_conversation_bg">Conversation background</string>
+    <string name="pref_color_list_title">Chat list title</string>
+    <string name="pref_color_list_preview">Chat list preview</string>
+    <string name="pref_color_fab">New-chat button (FAB)</string>
     <string name="pref_background_btn_default">Use Default Image</string>
     <string name="pref_background_btn_gallery">Select From Gallery</string>
     <!-- deprecated -->
