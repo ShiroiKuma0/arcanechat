@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- shiroikuma fork (Step 5): chat-list rows render as rounded cards - black fill with an accent
+     border (tracks ?attr/colorAccent). The ripple + state_selected multi-select tint are kept,
+     clipped to the rounded shape. Applied in code via setBgColor reading this theme attr. -->
+<ripple
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorAccent">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/white" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    <item>
+        <selector>
+            <item android:state_selected="true">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/def_primary_alpha33" />
+                    <stroke android:width="1.5dp" android:color="?attr/colorAccent" />
+                    <corners android:radius="12dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#000000" />
+                    <stroke android:width="1.5dp" android:color="?attr/colorAccent" />
+                    <corners android:radius="12dp" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

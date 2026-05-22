@@ -52,6 +52,18 @@
         <item>blue</item>
     </string-array>
 
+    <!-- shiroikuma fork (Step 6): chat-list row style. -->
+    <string-array name="chatlist_style_entries">
+        <item>Cards</item>
+        <item>Dividers</item>
+        <item>Plain</item>
+    </string-array>
+    <string-array name="chatlist_style_values" translatable="false">
+        <item>cards</item>
+        <item>dividers</item>
+        <item>plain</item>
+    </string-array>
+
     <string-array name="pref_led_color_entries">
         <item>@string/purple</item>
         <item>@string/green</item>
