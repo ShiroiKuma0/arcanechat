@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- common strings without special context -->
-    <string name="app_name">دێڵتا چات</string>
+    <string name="app_name">白い熊 ArcaneChat</string>
     <string name="ok">باشە</string>
     <string name="cancel">وازبێنە</string>
     <string name="yes">بەڵێ</string>
