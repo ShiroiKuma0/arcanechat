@@ -52,15 +52,21 @@
         <item>blue</item>
     </string-array>
 
-    <!-- shiroikuma fork (Step 6): chat-list row style. -->
+    <!-- shiroikuma fork (Step 6/7): chat-list row style. -->
     <string-array name="chatlist_style_entries">
         <item>Cards</item>
+        <item>Filled card</item>
+        <item>Accent bar</item>
         <item>Dividers</item>
+        <item>Inset divider</item>
         <item>Plain</item>
     </string-array>
     <string-array name="chatlist_style_values" translatable="false">
         <item>cards</item>
+        <item>filled</item>
+        <item>accentbar</item>
         <item>dividers</item>
+        <item>inset</item>
         <item>plain</item>
     </string-array>
 

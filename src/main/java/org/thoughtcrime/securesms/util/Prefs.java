@@ -55,6 +55,9 @@ public class Prefs {
   public static final String CHATLIST_CARDS = "cards";
   public static final String CHATLIST_DIVIDERS = "dividers";
   public static final String CHATLIST_PLAIN = "plain";
+  public static final String CHATLIST_FILLED = "filled";
+  public static final String CHATLIST_ACCENTBAR = "accentbar";
+  public static final String CHATLIST_INSET = "inset";
   public static final int COLOR_YELLOW = 0xFFFFFF00;
   public static final int COLOR_BLACK = 0xFF000000;
 

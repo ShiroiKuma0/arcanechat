@@ -355,16 +355,34 @@ public class ConversationListItem extends RelativeLayout
   private void setBgColor(ThreadRecord thread) {
     boolean pinned =
         thread != null && thread.getVisibility() == DcChat.DC_CHAT_VISIBILITY_PINNED;
-    // shiroikuma fork (Step 6): chat-list row style - cards / dividers / plain.
+    // shiroikuma fork (Step 6/7): chat-list row style.
     String style = Prefs.getChatListStyle(getContext());
-    boolean cards = Prefs.CHATLIST_CARDS.equals(style);
 
-    if (cards) {
-      int d =
-          pinned
-              ? R.drawable.pinned_list_item_card_background
-              : R.drawable.conversation_list_item_card_background;
-      ViewUtil.setBackground(this, getContext().getDrawable(d));
+    Integer styleDrawable = null;
+    switch (style) {
+      case Prefs.CHATLIST_CARDS:
+        styleDrawable =
+            pinned
+                ? R.drawable.pinned_list_item_card_background
+                : R.drawable.conversation_list_item_card_background;
+        break;
+      case Prefs.CHATLIST_FILLED:
+        styleDrawable =
+            pinned
+                ? R.drawable.pinned_list_item_card_filled_background
+                : R.drawable.conversation_list_item_card_filled_background;
+        break;
+      case Prefs.CHATLIST_ACCENTBAR:
+        styleDrawable =
+            pinned
+                ? R.drawable.pinned_list_item_accentbar_background
+                : R.drawable.conversation_list_item_accentbar_background;
+        break;
+      default: // dividers, inset, plain -> original (non-card) themed background
+        break;
+    }
+    if (styleDrawable != null) {
+      ViewUtil.setBackground(this, getContext().getDrawable(styleDrawable));
     } else {
       int bg = pinned ? R.attr.pinned_list_item_background : R.attr.conversation_list_item_background;
       try (TypedArray ta = getContext().obtainStyledAttributes(new int[] {bg})) {
@@ -372,29 +390,38 @@ public class ConversationListItem extends RelativeLayout
       }
     }
 
-    // Card style needs a gap between rows; the others sit flush.
+    // Boxed styles (cards, filled) get a gap between rows; the flush styles sit edge to edge.
+    boolean boxed = Prefs.CHATLIST_CARDS.equals(style) || Prefs.CHATLIST_FILLED.equals(style);
     if (getLayoutParams() instanceof android.view.ViewGroup.MarginLayoutParams) {
       android.view.ViewGroup.MarginLayoutParams lp =
           (android.view.ViewGroup.MarginLayoutParams) getLayoutParams();
-      int h = cards ? dpToPx(8) : 0;
-      int v = cards ? dpToPx(4) : 0;
+      int h = boxed ? dpToPx(8) : 0;
+      int v = boxed ? dpToPx(4) : 0;
       lp.setMargins(h, v, h, v);
       setLayoutParams(lp);
     }
 
-    // Divider: hidden for cards; accent line for "dividers"; faint default line for "plain".
+    // Divider: hidden for boxed styles (their border separates rows); accent line for
+    // dividers/inset; faint line for accentbar/plain; inset variant starts after the avatar.
     View divider = findViewById(R.id.item_divider);
     if (divider != null) {
-      if (cards) {
+      if (boxed) {
         divider.setVisibility(View.GONE);
       } else {
         divider.setVisibility(View.VISIBLE);
-        int attr =
-            Prefs.CHATLIST_DIVIDERS.equals(style)
-                ? R.attr.colorAccent
-                : R.attr.conversation_list_item_divider;
+        boolean accentLine =
+            Prefs.CHATLIST_DIVIDERS.equals(style) || Prefs.CHATLIST_INSET.equals(style);
+        int attr = accentLine ? R.attr.colorAccent : R.attr.conversation_list_item_divider;
         try (TypedArray ta = getContext().obtainStyledAttributes(new int[] {attr})) {
           divider.setBackgroundColor(ta.getColor(0, 0));
+        }
+        if (divider.getLayoutParams() instanceof android.view.ViewGroup.MarginLayoutParams) {
+          android.view.ViewGroup.MarginLayoutParams dlp =
+              (android.view.ViewGroup.MarginLayoutParams) divider.getLayoutParams();
+          int start = Prefs.CHATLIST_INSET.equals(style) ? dpToPx(72) : 0;
+          dlp.setMarginStart(start);
+          dlp.leftMargin = start;
+          divider.setLayoutParams(dlp);
         }
       }
     }
