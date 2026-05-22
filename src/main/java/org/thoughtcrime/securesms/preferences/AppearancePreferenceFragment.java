@@ -26,7 +26,97 @@ public class AppearancePreferenceFragment extends ListSummaryPreferenceFragment 
     this.findPreference(Prefs.BACKGROUND_PREF)
         .setOnPreferenceClickListener(new BackgroundClickListener());
 
+    initializeColorPref(Prefs.COLOR_MESSAGE_TEXT_PREF);
+    initializeColorPref(Prefs.COLOR_BUBBLE_FILL_PREF);
+    initializeColorPref(Prefs.COLOR_BUBBLE_BORDER_PREF);
+    initializeColorPref(Prefs.COLOR_CONVERSATION_BG_PREF);
+    initializeColorPref(Prefs.COLOR_LIST_TITLE_PREF);
+    initializeColorPref(Prefs.COLOR_LIST_PREVIEW_PREF);
+    initializeColorPref(Prefs.COLOR_FAB_PREF);
+
     initializeLanguagePref();
+  }
+
+  // shiroikuma fork (Step 2): a colour-role preference - shows a swatch of the current colour and
+  // opens the RGB/hex picker on tap. The colour applies on next render (ConversationItem reads
+  // Prefs at bind time), so no activity recreation is needed here.
+  private void initializeColorPref(String key) {
+    Preference pref = findPreference(key);
+    if (pref == null) return;
+    updateColorSwatch(pref, getColorFor(key));
+    pref.setOnPreferenceClickListener(
+        p -> {
+          org.thoughtcrime.securesms.components.ColorPickerDialog.show(
+              getContext(),
+              p.getTitle() == null ? "" : p.getTitle().toString(),
+              getColorFor(key),
+              color -> {
+                setColorFor(key, color);
+                updateColorSwatch(p, color);
+              });
+          return true;
+        });
+  }
+
+  private int getColorFor(String key) {
+    Context c = getContext();
+    switch (key) {
+      case Prefs.COLOR_BUBBLE_FILL_PREF:
+        return Prefs.getBubbleFillColor(c);
+      case Prefs.COLOR_BUBBLE_BORDER_PREF:
+        return Prefs.getBubbleBorderColor(c);
+      case Prefs.COLOR_CONVERSATION_BG_PREF:
+        return Prefs.getConversationBackgroundColor(c);
+      case Prefs.COLOR_LIST_TITLE_PREF:
+        return Prefs.getListTitleColor(c);
+      case Prefs.COLOR_LIST_PREVIEW_PREF:
+        return Prefs.getListPreviewColor(c);
+      case Prefs.COLOR_FAB_PREF:
+        return Prefs.getFabColor(c);
+      case Prefs.COLOR_MESSAGE_TEXT_PREF:
+      default:
+        return Prefs.getMessageTextColor(c);
+    }
+  }
+
+  private void setColorFor(String key, int color) {
+    Context c = getContext();
+    switch (key) {
+      case Prefs.COLOR_BUBBLE_FILL_PREF:
+        Prefs.setBubbleFillColor(c, color);
+        break;
+      case Prefs.COLOR_BUBBLE_BORDER_PREF:
+        Prefs.setBubbleBorderColor(c, color);
+        break;
+      case Prefs.COLOR_CONVERSATION_BG_PREF:
+        Prefs.setConversationBackgroundColor(c, color);
+        break;
+      case Prefs.COLOR_LIST_TITLE_PREF:
+        Prefs.setListTitleColor(c, color);
+        break;
+      case Prefs.COLOR_LIST_PREVIEW_PREF:
+        Prefs.setListPreviewColor(c, color);
+        break;
+      case Prefs.COLOR_FAB_PREF:
+        Prefs.setFabColor(c, color);
+        break;
+      case Prefs.COLOR_MESSAGE_TEXT_PREF:
+      default:
+        Prefs.setMessageTextColor(c, color);
+        break;
+    }
+  }
+
+  private void updateColorSwatch(Preference pref, int color) {
+    android.graphics.drawable.GradientDrawable swatch =
+        new android.graphics.drawable.GradientDrawable();
+    swatch.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+    swatch.setColor(color);
+    swatch.setStroke(2, 0xFF888888);
+    int size = (int) (28 * getResources().getDisplayMetrics().density);
+    swatch.setSize(size, size);
+    pref.setIcon(swatch);
+    pref.setSummary(String.format("#%06X", color & 0xFFFFFF));
   }
 
   // shiroikuma fork: in-app language override via AndroidX per-app locales.
