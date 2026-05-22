@@ -28,6 +28,7 @@ public class Prefs {
   public static final String RELIABLE_SERVICE_PREF = "pref_reliable_service";
   public static final String DISABLE_PASSPHRASE_PREF = "pref_disable_passphrase";
   public static final String THEME_PREF = "pref_theme";
+  public static final String LANGUAGE_PREF = "pref_language";
   public static final String BACKGROUND_PREF = "pref_chat_background";
 
   private static final String DATABASE_ENCRYPTED_SECRET =
