@@ -145,6 +145,12 @@ public class ConversationListFragment extends BaseConversationListFragment
   public void onResume() {
     super.onResume();
 
+    // shiroikuma fork (Step 6): rebind visible rows on return so a changed chat-list style
+    // (and other per-bind appearance prefs) repaints immediately rather than on the next reload.
+    if (list != null && list.getAdapter() != null) {
+      list.getAdapter().notifyDataSetChanged();
+    }
+
     if (requireActivity().getIntent().getIntExtra(RELOAD_LIST, 0) == 1 && !chatlistJustLoaded) {
       loadChatlist();
       reloadTimerInstantly = false;
