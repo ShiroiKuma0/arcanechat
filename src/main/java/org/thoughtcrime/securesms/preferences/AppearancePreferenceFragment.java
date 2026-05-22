@@ -62,9 +62,12 @@ public class AppearancePreferenceFragment extends ListSummaryPreferenceFragment 
     this.findPreference(Prefs.BACKGROUND_PREF)
         .setOnPreferenceClickListener(new BackgroundClickListener());
 
-    initializeColorPref(Prefs.COLOR_MESSAGE_TEXT_PREF);
-    initializeColorPref(Prefs.COLOR_BUBBLE_FILL_PREF);
-    initializeColorPref(Prefs.COLOR_BUBBLE_BORDER_PREF);
+    initializeColorPref(Prefs.COLOR_MSG_TEXT_IN_PREF);
+    initializeColorPref(Prefs.COLOR_MSG_TEXT_OUT_PREF);
+    initializeColorPref(Prefs.COLOR_BUBBLE_FILL_IN_PREF);
+    initializeColorPref(Prefs.COLOR_BUBBLE_FILL_OUT_PREF);
+    initializeColorPref(Prefs.COLOR_BUBBLE_BORDER_IN_PREF);
+    initializeColorPref(Prefs.COLOR_BUBBLE_BORDER_OUT_PREF);
     initializeColorPref(Prefs.COLOR_CONVERSATION_BG_PREF);
     initializeColorPref(Prefs.COLOR_LIST_TITLE_PREF);
     initializeColorPref(Prefs.COLOR_LIST_PREVIEW_PREF);
@@ -222,10 +225,18 @@ public class AppearancePreferenceFragment extends ListSummaryPreferenceFragment 
   private int getColorFor(String key) {
     Context c = getContext();
     switch (key) {
-      case Prefs.COLOR_BUBBLE_FILL_PREF:
-        return Prefs.getBubbleFillColor(c);
-      case Prefs.COLOR_BUBBLE_BORDER_PREF:
-        return Prefs.getBubbleBorderColor(c);
+      case Prefs.COLOR_MSG_TEXT_IN_PREF:
+        return Prefs.getMessageTextColor(c, false);
+      case Prefs.COLOR_MSG_TEXT_OUT_PREF:
+        return Prefs.getMessageTextColor(c, true);
+      case Prefs.COLOR_BUBBLE_FILL_IN_PREF:
+        return Prefs.getBubbleFillColor(c, false);
+      case Prefs.COLOR_BUBBLE_FILL_OUT_PREF:
+        return Prefs.getBubbleFillColor(c, true);
+      case Prefs.COLOR_BUBBLE_BORDER_IN_PREF:
+        return Prefs.getBubbleBorderColor(c, false);
+      case Prefs.COLOR_BUBBLE_BORDER_OUT_PREF:
+        return Prefs.getBubbleBorderColor(c, true);
       case Prefs.COLOR_CONVERSATION_BG_PREF:
         return Prefs.getConversationBackgroundColor(c);
       case Prefs.COLOR_LIST_TITLE_PREF:
@@ -233,21 +244,31 @@ public class AppearancePreferenceFragment extends ListSummaryPreferenceFragment 
       case Prefs.COLOR_LIST_PREVIEW_PREF:
         return Prefs.getListPreviewColor(c);
       case Prefs.COLOR_FAB_PREF:
-        return Prefs.getFabColor(c);
-      case Prefs.COLOR_MESSAGE_TEXT_PREF:
       default:
-        return Prefs.getMessageTextColor(c);
+        return Prefs.getFabColor(c);
     }
   }
 
   private void setColorFor(String key, int color) {
     Context c = getContext();
     switch (key) {
-      case Prefs.COLOR_BUBBLE_FILL_PREF:
-        Prefs.setBubbleFillColor(c, color);
+      case Prefs.COLOR_MSG_TEXT_IN_PREF:
+        Prefs.setMessageTextColor(c, false, color);
         break;
-      case Prefs.COLOR_BUBBLE_BORDER_PREF:
-        Prefs.setBubbleBorderColor(c, color);
+      case Prefs.COLOR_MSG_TEXT_OUT_PREF:
+        Prefs.setMessageTextColor(c, true, color);
+        break;
+      case Prefs.COLOR_BUBBLE_FILL_IN_PREF:
+        Prefs.setBubbleFillColor(c, false, color);
+        break;
+      case Prefs.COLOR_BUBBLE_FILL_OUT_PREF:
+        Prefs.setBubbleFillColor(c, true, color);
+        break;
+      case Prefs.COLOR_BUBBLE_BORDER_IN_PREF:
+        Prefs.setBubbleBorderColor(c, false, color);
+        break;
+      case Prefs.COLOR_BUBBLE_BORDER_OUT_PREF:
+        Prefs.setBubbleBorderColor(c, true, color);
         break;
       case Prefs.COLOR_CONVERSATION_BG_PREF:
         Prefs.setConversationBackgroundColor(c, color);
@@ -259,11 +280,8 @@ public class AppearancePreferenceFragment extends ListSummaryPreferenceFragment 
         Prefs.setListPreviewColor(c, color);
         break;
       case Prefs.COLOR_FAB_PREF:
-        Prefs.setFabColor(c, color);
-        break;
-      case Prefs.COLOR_MESSAGE_TEXT_PREF:
       default:
-        Prefs.setMessageTextColor(c, color);
+        Prefs.setFabColor(c, color);
         break;
     }
   }

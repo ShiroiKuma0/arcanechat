@@ -25,16 +25,28 @@
 
     <PreferenceCategory android:title="@string/pref_colors_category">
         <Preference
-            android:key="pref_color_message_text"
-            android:title="@string/pref_color_message_text"
+            android:key="pref_color_message_text_in"
+            android:title="@string/pref_color_message_text_in"
             android:persistent="false" />
         <Preference
-            android:key="pref_color_bubble_fill"
-            android:title="@string/pref_color_bubble_fill"
+            android:key="pref_color_message_text_out"
+            android:title="@string/pref_color_message_text_out"
             android:persistent="false" />
         <Preference
-            android:key="pref_color_bubble_border"
-            android:title="@string/pref_color_bubble_border"
+            android:key="pref_color_bubble_fill_in"
+            android:title="@string/pref_color_bubble_fill_in"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_bubble_fill_out"
+            android:title="@string/pref_color_bubble_fill_out"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_bubble_border_in"
+            android:title="@string/pref_color_bubble_border_in"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_bubble_border_out"
+            android:title="@string/pref_color_bubble_border_out"
             android:persistent="false" />
         <Preference
             android:key="pref_color_conversation_bg"
