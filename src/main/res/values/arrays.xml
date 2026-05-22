@@ -30,6 +30,28 @@
         <item>red</item>
     </string-array>
 
+    <!-- shiroikuma fork (Step 4b): accent preset choices. -->
+    <string-array name="accent_entries">
+        <item>Yellow</item>
+        <item>White</item>
+        <item>Cyan</item>
+        <item>Green</item>
+        <item>Orange</item>
+        <item>Red</item>
+        <item>Magenta</item>
+        <item>Blue</item>
+    </string-array>
+    <string-array name="accent_values" translatable="false">
+        <item>yellow</item>
+        <item>white</item>
+        <item>cyan</item>
+        <item>green</item>
+        <item>orange</item>
+        <item>red</item>
+        <item>magenta</item>
+        <item>blue</item>
+    </string-array>
+
     <string-array name="pref_led_color_entries">
         <item>@string/purple</item>
         <item>@string/green</item>

@@ -62,6 +62,21 @@ public class AppearancePreferenceFragment extends ListSummaryPreferenceFragment 
     this.findPreference(Prefs.BACKGROUND_PREF)
         .setOnPreferenceClickListener(new BackgroundClickListener());
 
+    // shiroikuma fork (Step 4b): accent preset picker - applies on recreate via DynamicTheme.
+    ListPreference accentPref = (ListPreference) findPreference(Prefs.ACCENT_PREF);
+    if (accentPref != null) {
+      accentPref.setValue(Prefs.getAccent(getContext()));
+      accentPref.setSummary(accentPref.getEntry());
+      accentPref.setOnPreferenceChangeListener(
+          (p, value) -> {
+            Prefs.setAccent(getContext(), (String) value);
+            int idx = accentPref.findIndexOfValue((String) value);
+            if (idx >= 0) p.setSummary(accentPref.getEntries()[idx]);
+            requireActivity().recreate();
+            return false; // stored manually (persistent=false); value reset on recreate
+          });
+    }
+
     initializeColorPref(Prefs.COLOR_MSG_TEXT_IN_PREF);
     initializeColorPref(Prefs.COLOR_MSG_TEXT_OUT_PREF);
     initializeColorPref(Prefs.COLOR_BUBBLE_FILL_IN_PREF);

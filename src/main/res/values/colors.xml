@@ -9,6 +9,16 @@
     <color name="def_primary_alpha33">#55FFFF00</color>
     <color name="def_accent">@color/shiroikuma_yellow</color>
     <color name="def_text">@color/shiroikuma_yellow</color>
+    <!-- shiroikuma fork (Step 4b): accent preset palette (drives colorAccent + control attrs +
+         popup border/text via the ThemeOverlay.Shiroikuma.Accent.* overlays). -->
+    <color name="acc_yellow">#FFFF00</color>
+    <color name="acc_white">#FFFFFF</color>
+    <color name="acc_cyan">#00E5FF</color>
+    <color name="acc_green">#00E676</color>
+    <color name="acc_orange">#FF9100</color>
+    <color name="acc_red">#FF1744</color>
+    <color name="acc_magenta">#FF44FF</color>
+    <color name="acc_blue">#448AFF</color>
     <color name="def_outgoing_bubble">@color/purple_outgoing_bubble</color>
     <color name="def_outgoing_label">@color/purple_outgoing_label</color>
     <color name="def_unreadcount">@color/purple_unreadcount</color>
