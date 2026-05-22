@@ -12,7 +12,7 @@
     android:paddingBottom="6dp"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:background="?attr/input_panel_bg_color">
+    android:background="@drawable/input_panel_bg_bordered">
 
     <org.thoughtcrime.securesms.components.QuoteView
         android:id="@+id/quote_view"

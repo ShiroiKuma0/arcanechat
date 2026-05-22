@@ -1102,7 +1102,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (!backgroundImagePath.isEmpty()) {
       background = Drawable.createFromPath(backgroundImagePath);
     } else {
-      background = getResources().getDrawable(R.drawable.background_hd);
+      // shiroikuma fork (step 1): no default wallpaper -> solid black conversation background.
+      background = null;
     }
     backgroundView.setImageDrawable(background);
   }

@@ -11,6 +11,7 @@
     <style
         name="AppCompatAlertDialogStyleDark"
         parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_yellow_border</item>
         <item name="buttonBarPositiveButtonStyle">@style/AlertDialogButton</item>
         <item name="buttonBarNegativeButtonStyle">@style/AlertDialogButton</item>
         <item name="buttonBarNeutralButtonStyle">@style/AlertDialogButton</item>
@@ -300,5 +301,22 @@
         <item name="android:textColorPrimary">@color/white</item>
         <item name="android:textColorSecondary">#BFffffff</item>
         <item name="elevation">4dp</item>
+    </style>
+
+    <!-- shiroikuma fork (step 1): overflow / popup menus get a black background with a yellow
+         border (reusing the dialog drawable) and yellow item text. -->
+    <style name="ThemeOverlay.Shiroikuma.Popup" parent="@style/ThemeOverlay.AppCompat.Dark">
+        <item name="popupMenuStyle">@style/Widget.Shiroikuma.PopupMenu</item>
+        <item name="android:popupMenuStyle">@style/Widget.Shiroikuma.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.Shiroikuma.PopupMenu.Overflow</item>
+        <item name="android:colorBackground">#000000</item>
+        <item name="android:textColorPrimary">@color/def_text</item>
+    </style>
+    <style name="Widget.Shiroikuma.PopupMenu" parent="@style/Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/dialog_yellow_border</item>
+    </style>
+    <style name="Widget.Shiroikuma.PopupMenu.Overflow" parent="@style/Widget.AppCompat.PopupMenu.Overflow">
+        <item name="android:popupBackground">@drawable/dialog_yellow_border</item>
+        <item name="overlapAnchor">false</item>
     </style>
 </resources>
