@@ -217,6 +217,8 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     int color = typedArray.getColor(0, Color.WHITE);
     typedArray.recycle();
 
+    // shiroikuma fork (Step 2): configurable conversation background colour.
+    color = Prefs.getConversationBackgroundColor(this);
     getWindow().getDecorView().setBackgroundColor(color);
 
     fragment = initFragment(R.id.fragment_content, new ConversationFragment());
