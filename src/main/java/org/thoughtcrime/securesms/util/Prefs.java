@@ -36,6 +36,15 @@ public class Prefs {
   public static final String COLOR_MESSAGE_TEXT_PREF = "pref_color_message_text";
   public static final String COLOR_BUBBLE_FILL_PREF = "pref_color_bubble_fill";
   public static final String COLOR_BUBBLE_BORDER_PREF = "pref_color_bubble_border";
+  // shiroikuma fork (Step 4): incoming/outgoing splits of the three message-bubble roles. Each
+  // defaults to the matching legacy single-value pref above, so colours already chosen carry over
+  // to both directions until the user differentiates them.
+  public static final String COLOR_MSG_TEXT_IN_PREF = "pref_color_message_text_in";
+  public static final String COLOR_MSG_TEXT_OUT_PREF = "pref_color_message_text_out";
+  public static final String COLOR_BUBBLE_FILL_IN_PREF = "pref_color_bubble_fill_in";
+  public static final String COLOR_BUBBLE_FILL_OUT_PREF = "pref_color_bubble_fill_out";
+  public static final String COLOR_BUBBLE_BORDER_IN_PREF = "pref_color_bubble_border_in";
+  public static final String COLOR_BUBBLE_BORDER_OUT_PREF = "pref_color_bubble_border_out";
   public static final String COLOR_CONVERSATION_BG_PREF = "pref_color_conversation_bg";
   public static final String COLOR_LIST_TITLE_PREF = "pref_color_list_title";
   public static final String COLOR_LIST_PREVIEW_PREF = "pref_color_list_preview";
@@ -135,6 +144,42 @@ public class Prefs {
 
   public static void setMessageTextColor(Context context, int color) {
     setIntegerPreference(context, COLOR_MESSAGE_TEXT_PREF, color);
+  }
+
+  // Direction-aware overloads (Step 4). Default to the legacy shared value above.
+  public static int getMessageTextColor(Context context, boolean outgoing) {
+    return getIntegerPreference(
+        context,
+        outgoing ? COLOR_MSG_TEXT_OUT_PREF : COLOR_MSG_TEXT_IN_PREF,
+        getMessageTextColor(context));
+  }
+
+  public static void setMessageTextColor(Context context, boolean outgoing, int color) {
+    setIntegerPreference(context, outgoing ? COLOR_MSG_TEXT_OUT_PREF : COLOR_MSG_TEXT_IN_PREF, color);
+  }
+
+  public static int getBubbleFillColor(Context context, boolean outgoing) {
+    return getIntegerPreference(
+        context,
+        outgoing ? COLOR_BUBBLE_FILL_OUT_PREF : COLOR_BUBBLE_FILL_IN_PREF,
+        getBubbleFillColor(context));
+  }
+
+  public static void setBubbleFillColor(Context context, boolean outgoing, int color) {
+    setIntegerPreference(
+        context, outgoing ? COLOR_BUBBLE_FILL_OUT_PREF : COLOR_BUBBLE_FILL_IN_PREF, color);
+  }
+
+  public static int getBubbleBorderColor(Context context, boolean outgoing) {
+    return getIntegerPreference(
+        context,
+        outgoing ? COLOR_BUBBLE_BORDER_OUT_PREF : COLOR_BUBBLE_BORDER_IN_PREF,
+        getBubbleBorderColor(context));
+  }
+
+  public static void setBubbleBorderColor(Context context, boolean outgoing, int color) {
+    setIntegerPreference(
+        context, outgoing ? COLOR_BUBBLE_BORDER_OUT_PREF : COLOR_BUBBLE_BORDER_IN_PREF, color);
   }
 
   public static int getBubbleFillColor(Context context) {

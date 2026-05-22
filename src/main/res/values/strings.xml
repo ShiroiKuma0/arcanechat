@@ -832,9 +832,12 @@
     <string name="pref_background">Wallpaper</string>
     <!-- shiroikuma fork (Step 2): configurable colours -->
     <string name="pref_colors_category">Colours</string>
-    <string name="pref_color_message_text">Message text</string>
-    <string name="pref_color_bubble_fill">Bubble fill</string>
-    <string name="pref_color_bubble_border">Bubble border</string>
+    <string name="pref_color_message_text_in">Message text (incoming)</string>
+    <string name="pref_color_message_text_out">Message text (outgoing)</string>
+    <string name="pref_color_bubble_fill_in">Bubble fill (incoming)</string>
+    <string name="pref_color_bubble_fill_out">Bubble fill (outgoing)</string>
+    <string name="pref_color_bubble_border_in">Bubble border (incoming)</string>
+    <string name="pref_color_bubble_border_out">Bubble border (outgoing)</string>
     <string name="pref_color_conversation_bg">Conversation background</string>
     <string name="pref_color_list_title">Chat list title</string>
     <string name="pref_color_list_preview">Chat list preview</string>
