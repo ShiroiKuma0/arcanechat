@@ -132,12 +132,25 @@ public class ConversationListItem extends RelativeLayout
     // shiroikuma fork (Step 2): configurable chat-list title colour (also forces a uniform colour
     // regardless of the per-recipient styling FromTextView would otherwise apply).
     this.fromView.setTextColor(Prefs.getListTitleColor(getContext()));
+    // shiroikuma fork (Step 3): configurable chat-list title font.
+    org.thoughtcrime.securesms.util.FontUtil.apply(
+        this.fromView,
+        Prefs.getFontFamily(getContext(), Prefs.FONT_LIST_TITLE),
+        Prefs.getFontWeight(getContext(), Prefs.FONT_LIST_TITLE),
+        Prefs.getFontSize(getContext(), Prefs.FONT_LIST_TITLE));
 
     subjectView.setVisibility(chatId == DcChat.DC_CHAT_ID_ARCHIVED_LINK ? GONE : VISIBLE);
     this.subjectView.setText(thread.getDisplayBody());
     this.subjectView.setTypeface(state == DcMsg.DC_STATE_IN_FRESH ? BOLD_TYPEFACE : LIGHT_TYPEFACE);
     // shiroikuma fork (Step 2): configurable chat-list preview/snippet colour.
     this.subjectView.setTextColor(Prefs.getListPreviewColor(getContext()));
+    // shiroikuma fork (Step 3): configurable chat-list preview/snippet font (overrides the
+    // fresh/read bold-light typeface above only when a font is actually configured).
+    org.thoughtcrime.securesms.util.FontUtil.apply(
+        this.subjectView,
+        Prefs.getFontFamily(getContext(), Prefs.FONT_LIST_PREVIEW),
+        Prefs.getFontWeight(getContext(), Prefs.FONT_LIST_PREVIEW),
+        Prefs.getFontSize(getContext(), Prefs.FONT_LIST_PREVIEW));
 
     if (thread.getDate() > 0) {
       CharSequence date = DateUtils.getBriefRelativeTimeSpanString(getContext(), thread.getDate());
