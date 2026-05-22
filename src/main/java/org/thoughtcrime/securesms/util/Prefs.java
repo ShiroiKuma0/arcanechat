@@ -190,6 +190,48 @@ public class Prefs {
     setIntegerPreference(context, COLOR_FAB_PREF, color);
   }
 
+  // shiroikuma fork (Step 3): per-category configurable fonts. Each category stores three values
+  // under "pref_font_<category>_{family,weight,size}". Defaults ("", 0, 0) mean "leave as-is".
+  public static final String FONT_CHAT_TEXT = "chat_text";
+  public static final String FONT_CONV_TITLE = "conv_title";
+  public static final String FONT_LIST_TITLE = "list_title";
+  public static final String FONT_LIST_PREVIEW = "list_preview";
+  public static final String FONT_SETTINGS = "settings";
+
+  /** Newline-separated absolute paths of user-picked custom font files. */
+  public static String[] getFontFiles(Context context) {
+    String raw = getStringPreference(context, "pref_font_files", "");
+    if (raw.isEmpty()) return new String[0];
+    java.util.List<String> out = new java.util.ArrayList<>();
+    for (String s : raw.split("\n")) if (!s.trim().isEmpty()) out.add(s.trim());
+    return out.toArray(new String[0]);
+  }
+
+  public static void addFontFile(Context context, String path) {
+    if (path == null || path.isEmpty()) return;
+    for (String existing : getFontFiles(context)) if (existing.equals(path)) return; // dedupe
+    String raw = getStringPreference(context, "pref_font_files", "");
+    setStringPreference(context, "pref_font_files", raw.isEmpty() ? path : raw + "\n" + path);
+  }
+
+  public static String getFontFamily(Context context, String category) {
+    return getStringPreference(context, "pref_font_" + category + "_family", "");
+  }
+
+  public static int getFontWeight(Context context, String category) {
+    return getIntegerPreference(context, "pref_font_" + category + "_weight", 0);
+  }
+
+  public static int getFontSize(Context context, String category) {
+    return getIntegerPreference(context, "pref_font_" + category + "_size", 0);
+  }
+
+  public static void setFont(Context context, String category, String family, int weight, int size) {
+    setStringPreference(context, "pref_font_" + category + "_family", family);
+    setIntegerPreference(context, "pref_font_" + category + "_weight", weight);
+    setIntegerPreference(context, "pref_font_" + category + "_size", size);
+  }
+
   public static int getNotificationPriority(Context context) {
     return Integer.valueOf(
         getStringPreference(
