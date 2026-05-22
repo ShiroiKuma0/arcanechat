@@ -16,7 +16,7 @@
     android:paddingBottom="6dp"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:background="@drawable/input_panel_rounded_bg"
+    android:background="@drawable/input_panel_bg_bordered"
     android:elevation="1dp"
     android:outlineProvider="background">
 
