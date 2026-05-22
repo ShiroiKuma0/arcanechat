@@ -853,6 +853,7 @@
     <!-- shiroikuma fork (Step 2): configurable colours -->
     <string name="pref_colors_category">Colours</string>
     <string name="pref_accent">Accent colour</string>
+    <string name="pref_chatlist_style">Chat list style</string>
     <string name="pref_color_message_text_in">Message text (incoming)</string>
     <string name="pref_color_message_text_out">Message text (outgoing)</string>
     <string name="pref_color_bubble_fill_in">Bubble fill (incoming)</string>

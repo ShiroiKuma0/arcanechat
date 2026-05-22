@@ -25,6 +25,12 @@
 
     <PreferenceCategory android:title="@string/pref_colors_category">
         <ListPreference
+            android:key="pref_chatlist_style"
+            android:title="@string/pref_chatlist_style"
+            android:entries="@array/chatlist_style_entries"
+            android:entryValues="@array/chatlist_style_values"
+            android:persistent="false" />
+        <ListPreference
             android:key="pref_accent"
             android:title="@string/pref_accent"
             android:entries="@array/accent_entries"
