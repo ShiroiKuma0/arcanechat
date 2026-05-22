@@ -18,6 +18,7 @@ package org.thoughtcrime.securesms;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.res.ColorStateList;
 import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -103,6 +104,8 @@ public class ConversationListFragment extends BaseConversationListFragment
 
     list = ViewUtil.findById(view, R.id.list);
     fab = ViewUtil.findById(view, R.id.fab);
+    // shiroikuma fork (Step 2): configurable FAB colour.
+    fab.setBackgroundTintList(ColorStateList.valueOf(Prefs.getFabColor(requireContext())));
     emptyState = ViewUtil.findById(view, R.id.empty_state);
     emptySearch = ViewUtil.findById(view, R.id.empty_search);
 
