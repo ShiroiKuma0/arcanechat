@@ -50,6 +50,13 @@ public class ConversationTitleView extends RelativeLayout {
 
     ViewUtil.setTextViewGravityStart(this.title, getContext());
     ViewUtil.setTextViewGravityStart(this.subtitle, getContext());
+
+    // shiroikuma fork (Step 3): configurable conversation-title font.
+    org.thoughtcrime.securesms.util.FontUtil.apply(
+        this.title,
+        org.thoughtcrime.securesms.util.Prefs.getFontFamily(getContext(), org.thoughtcrime.securesms.util.Prefs.FONT_CONV_TITLE),
+        org.thoughtcrime.securesms.util.Prefs.getFontWeight(getContext(), org.thoughtcrime.securesms.util.Prefs.FONT_CONV_TITLE),
+        org.thoughtcrime.securesms.util.Prefs.getFontSize(getContext(), org.thoughtcrime.securesms.util.Prefs.FONT_CONV_TITLE));
   }
 
   public void setTitle(@NonNull GlideRequests glideRequests, @NonNull DcChat dcChat) {
