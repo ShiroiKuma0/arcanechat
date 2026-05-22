@@ -23,6 +23,7 @@ public class DynamicTheme {
   public static final String GRAY = "gray";
 
   private int currentTheme;
+  private int currentAccent;
 
   public void onCreate(Activity activity) {
     // boolean wasDarkTheme = isDarkTheme;
@@ -32,6 +33,11 @@ public class DynamicTheme {
 
     activity.setTheme(currentTheme);
 
+    // shiroikuma fork (Step 4b): layer the chosen accent preset on top of the base theme. This
+    // sets colorAccent + control attrs; the popup border/text follow via ?attr/colorAccent.
+    currentAccent = getAccentOverlay(activity);
+    activity.getTheme().applyStyle(currentAccent, true);
+
     // In case you introduce a CachedInflater and there are problems with the dark mode, uncomment
     // this line and the line in onResume():
     // if (isDarkTheme != wasDarkTheme) {
@@ -40,13 +46,37 @@ public class DynamicTheme {
   }
 
   public void onResume(Activity activity) {
-    if (currentTheme != getSelectedTheme(activity)) {
+    if (currentTheme != getSelectedTheme(activity)
+        || currentAccent != getAccentOverlay(activity)) {
       Intent intent = activity.getIntent();
       activity.finish();
       OverridePendingTransition.invoke(activity);
       activity.startActivity(intent);
       OverridePendingTransition.invoke(activity);
       // CachedInflater.from(activity).clear();
+    }
+  }
+
+  // shiroikuma fork (Step 4b): map the stored accent preset key to its overlay style.
+  public static @StyleRes int getAccentOverlay(Context context) {
+    switch (Prefs.getAccent(context)) {
+      case "white":
+        return R.style.ThemeOverlay_Shiroikuma_Accent_White;
+      case "cyan":
+        return R.style.ThemeOverlay_Shiroikuma_Accent_Cyan;
+      case "green":
+        return R.style.ThemeOverlay_Shiroikuma_Accent_Green;
+      case "orange":
+        return R.style.ThemeOverlay_Shiroikuma_Accent_Orange;
+      case "red":
+        return R.style.ThemeOverlay_Shiroikuma_Accent_Red;
+      case "magenta":
+        return R.style.ThemeOverlay_Shiroikuma_Accent_Magenta;
+      case "blue":
+        return R.style.ThemeOverlay_Shiroikuma_Accent_Blue;
+      case "yellow":
+      default:
+        return R.style.ThemeOverlay_Shiroikuma_Accent_Yellow;
     }
   }
 
