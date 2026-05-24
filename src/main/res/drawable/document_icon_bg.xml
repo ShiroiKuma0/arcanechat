@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- shiroikuma fork (Step 8): send/attach button - black fill with an accent border (was a solid
-     fab_color oval). The icon inside is tinted ?attr/colorAccent in the layout. -->
+<!-- shiroikuma fork (Step 8): document/attachment icon chip in message bubbles - black fill with
+     an accent border; the file glyph is tinted ?attr/colorAccent in the layout. -->
 <shape
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
