@@ -175,6 +175,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
   private AnimatingToggle buttonToggle;
   private SendButton sendButton;
   private ImageButton attachButton;
+  private ImageButton attachButtonLeft;
   protected ConversationTitleView titleView;
   private ConversationFragment fragment;
   private InputAwareLayout container;
@@ -846,7 +847,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
           new AttachmentTypeSelector(
               this, getSupportLoaderManager(), new AttachmentTypeListener(), chatId);
     }
-    attachmentTypeSelector.show(this, attachButton);
+    // shiroikuma fork (Step 8): anchor to the right attach button when it's showing (no text),
+    // otherwise to the always-visible left paperclip (the right one is the send button then).
+    View anchor =
+        (attachButton != null && attachButton.getVisibility() == View.VISIBLE)
+            ? attachButton
+            : attachButtonLeft;
+    if (anchor == null) anchor = attachButton;
+    attachmentTypeSelector.show(this, anchor);
   }
 
   private void handleSecurityChange(boolean isSecureText, boolean isDefaultSms) {
@@ -1031,6 +1039,7 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     buttonToggle = ViewUtil.findById(this, R.id.button_toggle);
     sendButton = ViewUtil.findById(this, R.id.send_button);
     attachButton = ViewUtil.findById(this, R.id.attach_button);
+    attachButtonLeft = ViewUtil.findById(this, R.id.attach_button_left);
     composeText = ViewUtil.findById(this, R.id.embedded_text_editor);
     emojiPickerContainer = ViewUtil.findById(this, R.id.emoji_picker_container);
     container = ViewUtil.findById(this, R.id.layout_container);
@@ -1076,6 +1085,12 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     composeText.setOnEditorActionListener(sendButtonListener);
     attachButton.setOnClickListener(new AttachButtonListener());
+    attachButton.setOnLongClickListener(new AttachButtonLongClickListener());
+    // shiroikuma fork (Step 8): left-side paperclip triggers the same attach flow
+    if (attachButtonLeft != null) {
+      attachButtonLeft.setOnClickListener(new AttachButtonListener());
+      attachButtonLeft.setOnLongClickListener(new AttachButtonLongClickListener());
+    }
     sendButton.setOnClickListener(sendButtonListener);
     sendButton.setEnabled(true);
     sendButton.addOnTransportChangedListener(
