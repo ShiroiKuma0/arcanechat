@@ -37,8 +37,14 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
-        versionCode 30000751
-        versionName "2.58.1"
+        // shiroikuma fork: +N build scheme (App Manager / Handy RSS style), committed and bumped
+        // per feature. versionName = "<upstream>+<N>"; base versionCode = <upstreamCode> + N.
+        // NB: upstream's per-ABI override already does versionCode*10+abi (see applicationVariants
+        // below), and the upstream code is already 8 digits, so the other forks' "*10000 + N"
+        // would overflow Android's ~2.1e9 ceiling - here we add N to the base instead.
+        // On upstream rebase: reset to "<new upstream>+1" / <new upstream code> + 1.
+        versionCode 30000752
+        versionName "2.58.1+1"
 
         applicationId "chat.delta.lite"
         multiDexEnabled true
@@ -146,7 +152,10 @@ android {
 
     buildTypes {
         debug {
-            minifyEnabled true
+            // shiroikuma fork: debug is debuggable, so minify/optimization is disabled anyway -
+            // keeping minifyEnabled true only produced the "debuggable + isMinifyEnabled" warning.
+            // We only ever build release, so this has no effect on shipped APKs.
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             testProguardFiles 'test-proguard-rules.pro'
             applicationIdSuffix ".beta"
@@ -214,6 +223,10 @@ android {
     buildFeatures {
         renderScript true
         aidl true
+        // shiroikuma fork: explicit replacement for the deprecated
+        // android.defaults.buildfeatures.buildconfig property (removed from gradle.properties);
+        // the app uses buildConfigField extensively so BuildConfig must stay enabled.
+        buildConfig true
     }
 }
 
@@ -360,4 +373,12 @@ String getNdkArch() {
     def arch = properties.getProperty('NDK_ARCH')
     if (arch == null) return "\"\""
     return "\"$arch\""
+}
+
+// shiroikuma fork: silence javac's obsolete "-source 8 / -target 8" warnings (the `options` lint
+// category). Bytecode stays at Java 8 (compileOptions unchanged) - this only hides the deprecation
+// notice, no behavioural change. Complements the AGP-level
+// -Pandroid.javaCompile.suppressSourceTargetDeprecationWarning flag in the build command.
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Xlint:-options']
 }
