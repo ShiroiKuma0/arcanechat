@@ -360,3 +360,11 @@ String getNdkArch() {
     if (arch == null) return "\"\""
     return "\"$arch\""
 }
+
+// shiroikuma fork: silence javac's obsolete "-source 8 / -target 8" warnings (the `options` lint
+// category). Bytecode stays at Java 8 (compileOptions unchanged) - this only hides the deprecation
+// notice, no behavioural change. Complements the AGP-level
+// -Pandroid.javaCompile.suppressSourceTargetDeprecationWarning flag in the build command.
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Xlint:-options']
+}
