@@ -14,17 +14,19 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <org.thoughtcrime.securesms.components.CircleColorImageView
+        <ImageView
             android:id="@+id/document_button"
-            android:padding="4dp"
+            android:padding="8dp"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
+            android:background="@drawable/document_icon_bg"
             android:src="@drawable/ic_insert_drive_file_white_24dp"
-            android:scaleType="center"
-            android:contentDescription="@string/file"
-            app:circleColor="@color/document_icon" />
+            android:tint="?attr/colorAccent"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/file" /><!-- shiroikuma fork (Step 8): was a blue
+            CircleColorImageView; now black chip + accent border + accent glyph -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -43,7 +45,7 @@
                 android:singleLine="true"
                 android:clickable="false"
                 android:ellipsize="middle"
-                android:textColor="@color/document_icon_text"
+                android:textColor="?attr/colorAccent"
                 tools:text="The-Anarchist-Tension-by-Alfredo-Bonanno.pdf" />
 
             <TextView
@@ -52,7 +54,7 @@
                 android:layout_height="wrap_content"
                 style="@style/Signal.Text.Caption"
                 android:clickable="false"
-                android:textColor="@color/document_icon_text"
+                android:textColor="?attr/colorAccent"
                 tools:text="24kb" />
         </LinearLayout>
     </LinearLayout>
