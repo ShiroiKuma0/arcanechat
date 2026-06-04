@@ -58,6 +58,7 @@ import org.thoughtcrime.securesms.util.ViewUtil;
 public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarActivity
     implements SharedPreferences.OnSharedPreferenceChangeListener {
   private static final String PREFERENCE_CATEGORY_PROFILE = "preference_category_profile";
+  private static final String PREFERENCE_CATEGORY_SHIROIKUMA_UI = "preference_category_shiroikuma_ui";
   private static final String PREFERENCE_CATEGORY_NOTIFICATIONS =
       "preference_category_notifications";
   private static final String PREFERENCE_CATEGORY_APPEARANCE = "preference_category_appearance";
@@ -139,6 +140,13 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredActionBarA
 
       this.findPreference(PREFERENCE_CATEGORY_PROFILE)
           .setOnPreferenceClickListener(new ProfileClickListener());
+      // shiroikuma fork (Step 10): open the consolidated UI-customization page (its own activity).
+      this.findPreference(PREFERENCE_CATEGORY_SHIROIKUMA_UI)
+          .setOnPreferenceClickListener(
+              preference -> {
+                startActivity(new Intent(getActivity(), ShiroikumaUiActivity.class));
+                return true;
+              });
       this.findPreference(PREFERENCE_CATEGORY_NOTIFICATIONS)
           .setOnPreferenceClickListener(
               new CategoryClickListener(PREFERENCE_CATEGORY_NOTIFICATIONS));

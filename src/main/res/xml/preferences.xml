@@ -5,6 +5,13 @@
     <org.thoughtcrime.securesms.preferences.widgets.ProfilePreference
         android:key="preference_category_profile" />
 
+    <!-- shiroikuma fork (Step 10): the consolidated UI-customization page. -->
+    <Preference
+        android:key="preference_category_shiroikuma_ui"
+        android:title="@string/shiroikuma_ui_category"
+        android:icon="@drawable/ic_brightness_6_24dp"
+        android:layout="@layout/preference_item" />
+
     <Preference
         android:key="preference_category_chats"
         android:title="@string/pref_chats"
