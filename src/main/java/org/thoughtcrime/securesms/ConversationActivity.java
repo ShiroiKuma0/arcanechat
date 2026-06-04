@@ -1118,9 +1118,14 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
     if (!backgroundImagePath.isEmpty()) {
       background = Drawable.createFromPath(backgroundImagePath);
     } else {
-      // shiroikuma fork (step 1): no default wallpaper -> solid black conversation background.
+      // shiroikuma fork (step 1): no default wallpaper -> solid configured conversation background.
       background = null;
     }
+    // shiroikuma fork (Step 2 fix): the root layout paints input_panel_bg_color (gray95 in the
+    // dark theme) in front of the decor view, so the configured conversation background colour set
+    // on the decor view in onCreate is never visible. Apply it to the full-screen background view
+    // itself (behind any wallpaper image) so the colour actually shows.
+    backgroundView.setBackgroundColor(Prefs.getConversationBackgroundColor(this));
     backgroundView.setImageDrawable(background);
   }
 
