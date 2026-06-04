@@ -33,4 +33,9 @@
         android:title="@string/menu_settings"
         android:id="@+id/menu_settings" />
 
+    <!-- shiroikuma fork (Step 10): entry to the consolidated UI-customization page. -->
+    <item
+        android:title="@string/shiroikuma_ui_category"
+        android:id="@+id/menu_shiroikuma_ui" />
+
 </menu>
