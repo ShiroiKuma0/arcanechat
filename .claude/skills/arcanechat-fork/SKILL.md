@@ -1,6 +1,6 @@
 ---
 name: arcanechat-fork
-description: Build and maintain the user's customized fork of ArcaneChat for Android (package shiroikuma.arcanechat, installable side-by-side with any official ArcaneChat). ArcaneChat is a Delta Chat-based messenger with a native Rust core (deltachat-core-rust) pulled in as a git submodule. Use this skill any time the user mentions ArcaneChat, arcane-chat, ArcaneChat/android, shiroikuma.arcanechat, their ArcaneChat fork, asks to pull/sync a new ArcaneChat version from upstream, asks to rebuild ArcaneChat, asks to apply a change to ArcaneChat, or references their Huawei Mate XT + ArcaneChat build pipeline. This fork follows the same model as the user's FairEmail and SimpleX forks: a `custom` branch carrying their changes, rebased onto each upstream release tag. Default to assuming this skill applies when in doubt during a session about ArcaneChat for Android. Follows the shell-formatting conventions in `shell-block-formatting`; patch files are named per `patch-naming`.
+description: Build and maintain the user's customized fork of ArcaneChat for Android (package shiroikuma.arcanechat, installable side-by-side with any official ArcaneChat). ArcaneChat is a Delta Chat-based messenger with a native Rust core (deltachat-core-rust) pulled in as a git submodule. Use this skill any time the user mentions ArcaneChat, arcane-chat, ArcaneChat/android, shiroikuma.arcanechat, their ArcaneChat fork, asks to pull/sync a new ArcaneChat version from upstream, asks to rebuild ArcaneChat, asks to apply a change to ArcaneChat, or references their Huawei Mate XT + ArcaneChat build pipeline. This fork follows the same model as the user's FairEmail and SimpleX forks: a `custom` branch carrying their changes, rebased onto each upstream release tag. Default to assuming this skill applies when in doubt during a session about ArcaneChat for Android. Follows the shell-formatting conventions in `shell-block-formatting`.
 ---
 
 # ArcaneChat — customized fork build skill
@@ -281,17 +281,14 @@ Expected conflicts are tiny and predictable: the `applicationId` line in `build.
 
 ## Iteration cadence (applying user-requested changes)
 
-Same as the user's other forks. When the user requests a code change:
-1. Make and verify the change against `origin/custom` as the base.
-2. Deliver it as a `.patch` file named per the `patch-naming` skill, saved to `~/tmp/`.
-3. The user applies it (`git apply`), builds via the pipeline above, and tests.
-4. If wrong, re-derive against the same `origin/custom` base and redeliver — do not stack fixes on a dirty tree.
-5. When the user says "Push." (or similar), emit the commit-and-push block targeting `custom`. Stage only the patch's files — never the uncommitted `gradle-wrapper.properties` timeout bump.
-6. **After the user confirms the push landed ("Done." or similar), immediately re-sync the working copy to the pushed state: `git fetch origin && git reset --hard origin/custom`.** This is a standing rule — it keeps the working tree clean and identical to `origin/custom` so the next patch is generated against exactly what the user has, with no drift.
+This Claude Code setup edits the working tree **directly** — there is no `.patch` round-trip and no `git apply` (see `CLAUDE.md`). When the user requests a code change:
+1. Make the change directly in the repo against `origin/custom` as the base, then verify it (re-read the edits, grep a sentinel from each change).
+2. Summarise what changed. The user reviews and builds + tests via the build pipeline above — or asks Claude to build it (Java-only changes skip `ndk-make.sh`; the prebuilt `libs/arm64-v8a/*.so` is reused).
+3. If it's wrong, fix in place — or reset to a clean base with `git reset --hard origin/custom` **plus** `git clean -fd src/` (a `reset` leaves *untracked* files a change added, so the clean removes them) and redo. Scope the clean to `src/` so `build/` and the root `libs/` native `.so` outputs survive — otherwise `ndk-make.sh` recompiles the Rust core (slow).
+4. Bump the version per feature (see Versioning).
+5. On "Push." (or similar), commit and push to `origin custom`: stage only the specific feature files by **explicit path** (never `git add -A`; **never** the working-tree `gradle/wrapper/gradle-wrapper.properties` timeout bump), and update this skill in the **same commit** (commit list, customization entry, conflict-file map, traps, current version). End the commit message with the `Co-Authored-By: Claude` trailer. Once it's committed and pushed there is nothing left to sync — the working tree is the source of truth (no post-push re-sync step; that was a browser-chat patch-workflow relic).
 
-**Critical apply-time trap:** before every `git apply`, sync with `git reset --hard origin/custom` **and** `git clean -fd src/`. `git reset --hard` only reverts *tracked* files; an untracked file a previous patch created (e.g. `src/main/res/drawable/dialog_yellow_border.xml`) survives the reset, and the next `git apply` aborts the **entire** patch atomically with `error: <file>: already exists in working directory` — silently dropping every hunk (this caused a real "colors reverted but name fixed" regression). Scope the clean to `src/` so it removes leftover untracked source files without nuking `build/` or the root `libs/` native `.so` outputs (which would force a slow `ndk-make.sh` Rust rebuild). Always include a post-apply verification (grep for a sentinel from each change) before building, since `r` does not abort the block on a failed `git apply`.
-
-Customization patches go on top of the existing customization commits on `custom`, so they survive rebases onto new upstream tags along with the rest.
+Customization commits go on top of the existing customization commits on `custom`, so they survive rebases onto new upstream tags along with the rest.
 
 ## Maintenance
 
