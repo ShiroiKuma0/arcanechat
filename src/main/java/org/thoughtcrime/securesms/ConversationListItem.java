@@ -158,6 +158,13 @@ public class ConversationListItem extends RelativeLayout
     } else {
       dateView.setText("");
     }
+    // shiroikuma fork (Step 10): configurable chat-list date/time colour + font.
+    this.dateView.setTextColor(Prefs.getListDateColor(getContext()));
+    org.thoughtcrime.securesms.util.FontUtil.apply(
+        this.dateView,
+        Prefs.getFontFamily(getContext(), Prefs.FONT_LIST_DATE),
+        Prefs.getFontWeight(getContext(), Prefs.FONT_LIST_DATE),
+        Prefs.getFontSize(getContext(), Prefs.FONT_LIST_DATE));
 
     dateView.setCompoundDrawablesWithIntrinsicBounds(
         thread.isSendingLocations() ? R.drawable.ic_location_chatlist : 0, 0,

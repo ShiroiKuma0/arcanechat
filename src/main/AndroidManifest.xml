@@ -272,6 +272,14 @@
             android:name=".ApplicationPreferencesActivity"
             android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
 
+        <!-- shiroikuma fork (Step 10): consolidated "白い熊 ArcaneChat UI" customization page. -->
+        <activity
+            android:name=".ShiroikumaUiActivity"
+            android:exported="false"
+            android:label="@string/shiroikuma_ui_category"
+            android:parentActivityName=".ApplicationPreferencesActivity"
+            android:configChanges="touchscreen|keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
+
         <activity
             android:name=".WelcomeActivity"
             android:launchMode="singleTop"

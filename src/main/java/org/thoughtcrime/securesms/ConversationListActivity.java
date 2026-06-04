@@ -533,6 +533,10 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
     } else if (itemId == R.id.menu_settings) {
       startActivity(new Intent(this, ApplicationPreferencesActivity.class));
       return true;
+    } else if (itemId == R.id.menu_shiroikuma_ui) {
+      // shiroikuma fork (Step 10): open the consolidated UI-customization page.
+      startActivity(new Intent(this, ShiroikumaUiActivity.class));
+      return true;
     } else if (itemId == R.id.menu_qr) {
       Intent intent =
           new IntentIntegrator(this).setCaptureActivity(QrActivity.class).createScanIntent();

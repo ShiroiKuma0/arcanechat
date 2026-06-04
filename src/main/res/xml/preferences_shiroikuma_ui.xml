@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- shiroikuma fork (Step 10): the consolidated "白い熊 ArcaneChat UI" customization page.
+     PreferenceCategory = section header; a non-selectable Preference with the subheader layout =
+     subgroup header (indent 1); items sit at indent 1 (directly under a section) or indent 2
+     (under a subgroup). Keys match the Prefs constants so ShiroikumaUiPreferenceFragment wires
+     each control by key (colour swatch + RGB/hex dialog, font picker, accent + chat-list pickers). -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/pref_ui_section_general">
+        <ListPreference
+            android:key="pref_accent"
+            android:title="@string/pref_accent"
+            android:layout="@layout/preference_shiroikuma_indent1"
+            android:entries="@array/accent_entries"
+            android:entryValues="@array/accent_values"
+            android:persistent="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_ui_section_chatlist">
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ui_subgroup_layout"
+            android:selectable="false"
+            android:persistent="false" />
+        <ListPreference
+            android:key="pref_chatlist_style"
+            android:title="@string/pref_chatlist_style"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:entries="@array/chatlist_style_entries"
+            android:entryValues="@array/chatlist_style_values"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_colors_category"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_list_title"
+            android:title="@string/pref_color_list_title"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_list_preview"
+            android:title="@string/pref_color_list_preview"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_list_date"
+            android:title="@string/pref_color_list_date"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_fab"
+            android:title="@string/pref_color_fab"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_fonts_category"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_list_title"
+            android:title="@string/pref_font_list_title"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_list_preview"
+            android:title="@string/pref_font_list_preview"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_list_date"
+            android:title="@string/pref_font_list_date"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_ui_section_conversation">
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ui_subgroup_background"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_conversation_bg"
+            android:title="@string/pref_color_conversation_bg"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ui_subgroup_incoming"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_message_text_in"
+            android:title="@string/pref_color_message_text_in"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_bubble_fill_in"
+            android:title="@string/pref_color_bubble_fill_in"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_bubble_border_in"
+            android:title="@string/pref_color_bubble_border_in"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ui_subgroup_outgoing"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_message_text_out"
+            android:title="@string/pref_color_message_text_out"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_bubble_fill_out"
+            android:title="@string/pref_color_bubble_fill_out"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_color_bubble_border_out"
+            android:title="@string/pref_color_bubble_border_out"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_fonts_category"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_conv_title"
+            android:title="@string/pref_font_conv_title"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_chat_text"
+            android:title="@string/pref_font_chat_text"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_ui_section_settings_screen">
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_fonts_category"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_font_settings"
+            android:title="@string/pref_font_settings"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_ui_section_custom_fonts">
+        <Preference
+            android:key="pref_font_add"
+            android:title="@string/pref_font_add"
+            android:summary="@string/pref_font_add_summary"
+            android:layout="@layout/preference_shiroikuma_indent1"
+            android:persistent="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_ui_section_reset">
+        <Preference
+            android:key="pref_reset_ui"
+            android:title="@string/pref_reset_ui"
+            android:summary="@string/pref_reset_ui_summary"
+            android:layout="@layout/preference_shiroikuma_indent1"
+            android:persistent="false" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
