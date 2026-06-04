@@ -853,6 +853,24 @@
     <string name="pref_font_settings">Settings</string>
     <string name="pref_font_add">Add custom font…</string>
     <string name="pref_font_add_summary">Pick a .ttf/.otf file to use in any category</string>
+    <!-- shiroikuma fork (Step 10): the consolidated "白い熊 ArcaneChat UI" customization page -->
+    <string name="shiroikuma_ui_category">白い熊 ArcaneChat UI</string>
+    <string name="pref_ui_section_general">General</string>
+    <string name="pref_ui_section_chatlist">Chat list</string>
+    <string name="pref_ui_section_conversation">Conversation</string>
+    <string name="pref_ui_section_settings_screen">Settings screen</string>
+    <string name="pref_ui_section_custom_fonts">Custom fonts</string>
+    <string name="pref_ui_section_reset">Reset</string>
+    <string name="pref_ui_subgroup_layout">Layout</string>
+    <string name="pref_ui_subgroup_background">Background</string>
+    <string name="pref_ui_subgroup_incoming">Incoming messages</string>
+    <string name="pref_ui_subgroup_outgoing">Outgoing messages</string>
+    <string name="pref_color_list_date">Chat list date &amp; time</string>
+    <string name="pref_font_list_date">Chat-list date &amp; time</string>
+    <string name="pref_reset_ui">Reset all to defaults</string>
+    <string name="pref_reset_ui_summary">Restore every 白い熊 UI colour, font, accent and chat-list style</string>
+    <string name="pref_reset_ui_confirm_title">Reset 白い熊 UI?</string>
+    <string name="pref_reset_ui_confirm_message">This restores every colour, font, accent and chat-list style to its default. Your added font files are kept.</string>
     <string name="pref_background_btn_default">Use Default Image</string>
     <string name="pref_background_btn_gallery">Select From Gallery</string>
     <!-- deprecated -->
