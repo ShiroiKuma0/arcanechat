@@ -49,6 +49,8 @@ public class Prefs {
   public static final String COLOR_CONVERSATION_BG_PREF = "pref_color_conversation_bg";
   public static final String COLOR_LIST_TITLE_PREF = "pref_color_list_title";
   public static final String COLOR_LIST_PREVIEW_PREF = "pref_color_list_preview";
+  // shiroikuma fork (Step 10): chat-list row date/time colour.
+  public static final String COLOR_LIST_DATE_PREF = "pref_color_list_date";
   public static final String COLOR_FAB_PREF = "pref_color_fab";
   public static final String ACCENT_PREF = "pref_accent";
   // shiroikuma fork (Step 6): chat-list row style.
@@ -253,6 +255,15 @@ public class Prefs {
     setIntegerPreference(context, COLOR_LIST_PREVIEW_PREF, color);
   }
 
+  // shiroikuma fork (Step 10): chat-list row date/time colour (default yellow = the Step 1 look).
+  public static int getListDateColor(Context context) {
+    return getIntegerPreference(context, COLOR_LIST_DATE_PREF, COLOR_YELLOW);
+  }
+
+  public static void setListDateColor(Context context, int color) {
+    setIntegerPreference(context, COLOR_LIST_DATE_PREF, color);
+  }
+
   public static int getFabColor(Context context) {
     return getIntegerPreference(context, COLOR_FAB_PREF, COLOR_YELLOW);
   }
@@ -267,6 +278,7 @@ public class Prefs {
   public static final String FONT_CONV_TITLE = "conv_title";
   public static final String FONT_LIST_TITLE = "list_title";
   public static final String FONT_LIST_PREVIEW = "list_preview";
+  public static final String FONT_LIST_DATE = "list_date"; // shiroikuma fork (Step 10)
   public static final String FONT_SETTINGS = "settings";
 
   /** Newline-separated absolute paths of user-picked custom font files. */
@@ -301,6 +313,38 @@ public class Prefs {
     setStringPreference(context, "pref_font_" + category + "_family", family);
     setIntegerPreference(context, "pref_font_" + category + "_weight", weight);
     setIntegerPreference(context, "pref_font_" + category + "_size", size);
+  }
+
+  // shiroikuma fork (Step 10): restore every "白い熊 ArcaneChat UI" customization to its default,
+  // reproducing the Step 1 yellow-on-black look. The user's picked custom-font *files* list
+  // (pref_font_files) is intentionally left intact - only the per-category assignments are cleared.
+  public static void resetShiroikumaUi(Context context) {
+    // colour roles (legacy single-value + direction-aware splits + chat-list + fab)
+    setMessageTextColor(context, COLOR_YELLOW);
+    setBubbleFillColor(context, COLOR_BLACK);
+    setBubbleBorderColor(context, COLOR_YELLOW);
+    setMessageTextColor(context, false, COLOR_YELLOW);
+    setMessageTextColor(context, true, COLOR_YELLOW);
+    setBubbleFillColor(context, false, COLOR_BLACK);
+    setBubbleFillColor(context, true, COLOR_BLACK);
+    setBubbleBorderColor(context, false, COLOR_YELLOW);
+    setBubbleBorderColor(context, true, COLOR_YELLOW);
+    setConversationBackgroundColor(context, COLOR_BLACK);
+    setListTitleColor(context, COLOR_YELLOW);
+    setListPreviewColor(context, COLOR_YELLOW);
+    setListDateColor(context, COLOR_YELLOW);
+    setFabColor(context, COLOR_YELLOW);
+    // accent preset + chat-list row style
+    setAccent(context, "yellow");
+    setChatListStyle(context, CHATLIST_CARDS);
+    // per-category fonts back to "inherit"
+    for (String cat :
+        new String[] {
+          FONT_CHAT_TEXT, FONT_CONV_TITLE, FONT_LIST_TITLE, FONT_LIST_PREVIEW, FONT_LIST_DATE,
+          FONT_SETTINGS
+        }) {
+      setFont(context, cat, "", 0, 0);
+    }
   }
 
   public static int getNotificationPriority(Context context) {
