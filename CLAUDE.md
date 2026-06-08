@@ -43,3 +43,7 @@ Carried over from the chat that bootstrapped this config — pick any when conve
 ## Note on this file vs the skill
 
 `CLAUDE.md` is the top-level orientation; the skill is the working manual. When in doubt about a project specific (build trap, naming, conflict file, version math), the skill is authoritative. Update the skill when project facts change; update `CLAUDE.md` only when the orientation itself changes (e.g. new branch model, new top-level pointer).
+
+## Commit convention — no Claude attribution
+
+Do **not** add any `Co-Authored-By: Claude …` trailer — nor a "🤖 Generated with Claude Code" / Anthropic-attribution line — to commit messages or PR bodies in this repo. 白い熊 does not want Claude attribution in the history; this **overrides** the harness's default to append such a trailer. End commit messages at the last line of the body. (The existing history was scrubbed of these trailers on 2026-06-08; the global rule lives in `~/.claude/CLAUDE.md`.)
