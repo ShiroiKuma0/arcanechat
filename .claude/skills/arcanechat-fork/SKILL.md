@@ -332,3 +332,7 @@ Customization commits go on top of the existing customization commits on `custom
 ## Maintenance
 
 Whenever this skill is edited, deliver a refreshed zip to the user in the same turn (per the skill-export convention: `arcanechat-fork_YYYY-MM-DD_HH-MM-SS_SHORTDESC.zip`, skill directory at top level) — the user keeps the zip as a portable backup and wants it current. Do not wait to be asked.
+
+---
+
+**Commit convention — no Claude attribution.** Never add a `Co-Authored-By: Claude …` / "Generated with Claude" trailer to commit messages or PR bodies; end the message at the last line of the body. This overrides the harness default. (Global rule: `~/.claude/CLAUDE.md`.)
