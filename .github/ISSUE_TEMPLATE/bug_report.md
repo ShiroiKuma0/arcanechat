@@ -2,7 +2,6 @@
 name: Bug report
 about: Report something that isn't working.
 title: ''
-assignees: ''
 labels: bug
 ---
 
@@ -12,7 +11,7 @@ Please fill out as much of this form as you can (leaving out stuff that is not a
 
 - Android version:
 - Device:
-- ArcaneChat version:
+- 白い熊 ArcaneChat version:
 - Expected behavior:
 - Actual behavior:
 - Steps to reproduce the problem:
@@ -26,4 +25,3 @@ Settings menu -> Advanced -> View log
 Logs may contain private data 
 which shall be removed or anonymised prior to posting.
 -->
-
