@@ -227,24 +227,11 @@ if [[ "$ans" =~ ^[Yy]$ ]]; then
       echo -e '\033[1;36m>>> mkdir -p ~/tmp\033[0m'
       r bash -c 'mkdir -p ~/tmp'
 
-      echo
-      echo -e '\033[1;33m================================================================\033[0m'
-      echo -e '\033[1;33m>>>   CONNECT THE PHONE TO THE LAPTOP VIA USB CABLE NOW   <<<\033[0m'
-      echo -e '\033[1;33m================================================================\033[0m'
-      echo
-      read -t 0.5 -n 9999 -s _flush
-      read -p $'\033[1;33m>>> Phone connected and ready to receive the APK? (y/n) \033[0m' ans2
-      if [[ "$ans2" =~ ^[Yy]$ ]]; then
-        r adb devices
-        echo -e "\033[1;36m>>> adb push $src_apk /sdcard/tmp/$apk_name\033[0m"
-        r adb push "$src_apk" "/sdcard/tmp/$apk_name"
-      else
-        echo -e '\033[1;33m>>> Skipping adb push. Local backup still saved below — sideload it manually.\033[0m'
-      fi
-
-      echo -e "\033[1;36m>>> cp $src_apk ~/tmp/$apk_name (always)\033[0m"
+      echo -e "\033[1;36m>>> cp $src_apk ~/tmp/$apk_name (always — the backup /after-build keys off)\033[0m"
       r cp "$src_apk" ~/tmp/"$apk_name"
       r ls -lh ~/tmp/"$apk_name"
+
+      echo -e '\033[1;36m>>> Now deliver with /after-build (adb-check UNSANDBOXED -> adb-push if the phone is connected, else scp to skhw). No phone-connect prompt.\033[0m'
     else
       echo -e '\033[1;31m>>> Gradle FAILED — re-run with --stacktrace and read the What went wrong / Caused by lines.\033[0m'
     fi
@@ -257,10 +244,10 @@ fi
 ```
 
 Key invariants in this block, all required by the user's conventions:
-- The **LOUD yellow phone-connect banner** before the on-device step, plus a `read -p` worded as the reminder itself. This is mandatory in every build pipeline (the user has flagged its removal before).
-- `read -t 0.5 -n 9999 -s _flush` before each gate, to swallow a stray trailing newline from the pasted block so it can't auto-answer the prompt.
-- The local `~/tmp/` copy is **unconditional** — a missing cable never costs the build; sideload from `~/tmp/` via KDE Connect/Bluetooth instead.
-- `adb push` to `/sdcard/tmp/` (install via the phone's file manager), **not** `adb install`.
+- **Delivery is automatic via `/after-build`** — no phone-connect banner and no `read -p` "phone connected?" gate (both retired by 白い熊's policy change). After the build, copy to `~/tmp/` then invoke `/after-build`: it runs `/adb-check` UNSANDBOXED, then `/adb-push` to the phone or `/scp` to skhw, without asking.
+- `read -t 0.5 -n 9999 -s _flush` before the build gate, to swallow a stray trailing newline from the pasted block so it can't auto-answer the prompt.
+- The local `~/tmp/` copy is **unconditional** — a missing cable never costs the build; `/after-build` falls back to `/scp` (or sideload from `~/tmp/` via KDE Connect/Bluetooth).
+- `/after-build`'s device branch is `adb push` to `/sdcard/tmp/` (install via the phone's file manager), **not** `adb install`.
 
 ### Claude-run build (non-interactive)
 
@@ -280,7 +267,7 @@ sed -i 's/^networkTimeout=.*/networkTimeout=600000/' gradle/wrapper/gradle-wrapp
 echo "GRADLE_EXIT=$?"
 ```
 
-Run it in the background (Claude is re-invoked on exit); then read `~/tmp/arcanechat_build.log` for `BUILD SUCCESSFUL` — the source APK is `build/outputs/apk/foss/release/shiroikuma-arcanechat-foss-<versionName>.apk`. The log keeps the unsuppressable javac `ノート:`/`Note:` lines (harmless; the interactive pipeline filters them only for display). Then copy to `~/tmp/` under the filename grammar and ask about `adb push` via an `AskUserQuestion` dialog (Yes first = choice 1; Iteration cadence step 2): on Yes, `adb shell mkdir -p /sdcard/tmp && adb push <src> /sdcard/tmp/<apk>`.
+Run it in the background (Claude is re-invoked on exit); then read `~/tmp/arcanechat_build.log` for `BUILD SUCCESSFUL` — the source APK is `build/outputs/apk/foss/release/shiroikuma-arcanechat-foss-<versionName>.apk`. The log keeps the unsuppressable javac `ノート:`/`Note:` lines (harmless; the interactive pipeline filters them only for display). Then copy to `~/tmp/` under the filename grammar and deliver via `/after-build` (Iteration cadence step 2): `/adb-check` UNSANDBOXED, then `/adb-push` to `/sdcard/tmp/` if the phone is connected, else `/scp` to skhw — no asking.
 
 ## Versioning
 
@@ -296,9 +283,9 @@ Do **bump versionCode + versionName per feature** (adopted in Step 9), using the
 
 ## Deploy / install
 
-**Always inquire about `adb push` after every build** — the interactive pipeline does this via the LOUD phone-connect gate; a Claude-run build must ask via an `AskUserQuestion` dialog (a single yes/no question with **Yes first = choice 1**; see Iteration cadence step 2) before finishing the turn. Never silently stop at the APK, and never ask in prose.
+**Always deliver via `/after-build` after every build — no asking.** Copy the signed APK to `~/tmp/`, then invoke `/after-build`: it runs `/adb-check` UNSANDBOXED, then `/adb-push` to the phone if connected, else `/scp` to skhw, announcing the filename. Never silently stop at the APK, and never prompt "is the phone connected?" (the old LOUD phone-connect gate and the `AskUserQuestion` dialog are retired).
 
-On-device first (`adb push` to `/sdcard/tmp/`), local backup second (`cp` to `~/tmp/`). Install on the phone via its file manager. The stable keystore means rebuilds update the existing `shiroikuma.arcanechat` install without uninstall. The two coexist with any official ArcaneChat because applicationIds differ; do **not** try to install over an official build signed with a different key — Android will refuse.
+Local backup first (`cp` to `~/tmp/`, the file `/after-build` keys off), then `/after-build` delivers on-device (`adb push` to `/sdcard/tmp/`) or to skhw. Install on the phone via its file manager. The stable keystore means rebuilds update the existing `shiroikuma.arcanechat` install without uninstall. The two coexist with any official ArcaneChat because applicationIds differ; do **not** try to install over an official build signed with a different key — Android will refuse.
 
 ## Syncing to a new upstream release
 
@@ -322,7 +309,7 @@ Expected conflicts are tiny and predictable: the `applicationId` line in `build.
 
 This Claude Code setup edits the working tree **directly** — there is no `.patch` round-trip and no `git apply` (see `CLAUDE.md`). When the user requests a code change:
 1. Make the change directly in the repo against `origin/custom` as the base, then verify it (re-read the edits, grep a sentinel from each change).
-2. **Always build after a change — don't wait to be asked.** After applying any change that affects the app (code or resources), summarise what changed and immediately build it yourself via the non-interactive run below (the `read -p`-gated pipeline can't be driven by an automated session). Java/resource-only changes use the fast path (skip `ndk-make.sh`, reuse the prebuilt `libs/arm64-v8a/*.so`); run `ndk-make.sh` only if the native core moved. (Skill/doc-only edits don't change the APK, so they don't trigger a build.) **After the build succeeds, always: (a) copy the APK to `~/tmp/` under the filename grammar (`shiroikuma-arcanechat_<versionName>_arm64-v8a.apk`) as the unconditional backup, then (b) ask whether to `adb push` it to the phone **via an `AskUserQuestion` dialog**, never as a prose question, so the user answers with one keypress — a single question (header `adb push`) whose **first** option is `Yes — push to the Mate XT` (so it is choice **1**) and whose second is `No — keep the ~/tmp backup only`. Never end a build turn without this dialog.** On Yes, push (`adb shell mkdir -p /sdcard/tmp && adb push <src> /sdcard/tmp/<apk>`, **not** `adb install`); on No, leave the `~/tmp/` copy for manual sideload (KDE Connect/Bluetooth).
+2. **Always build after a change — don't wait to be asked.** After applying any change that affects the app (code or resources), summarise what changed and immediately build it yourself via the non-interactive run below (the `read -p`-gated pipeline can't be driven by an automated session). Java/resource-only changes use the fast path (skip `ndk-make.sh`, reuse the prebuilt `libs/arm64-v8a/*.so`); run `ndk-make.sh` only if the native core moved. (Skill/doc-only edits don't change the APK, so they don't trigger a build.) **After the build succeeds, always: (a) copy the APK to `~/tmp/` under the filename grammar (`shiroikuma-arcanechat_<versionName>_arm64-v8a.apk`) as the unconditional backup, then (b) deliver it via the global `/after-build` skill, without asking — `/adb-check` UNSANDBOXED, then `/adb-push` to `/sdcard/tmp/` (**not** `adb install`) if the phone is connected, else `/scp` to skhw, announcing the filename. Never end a build turn without delivering via `/after-build`.** (The old `AskUserQuestion` "push to the Mate XT?" dialog is retired — `/adb-check` decides phone-vs-skhw itself.)
 3. If it's wrong, fix in place — or reset to a clean base with `git reset --hard origin/custom` **plus** `git clean -fd src/` (a `reset` leaves *untracked* files a change added, so the clean removes them) and redo. Scope the clean to `src/` so `build/` and the root `libs/` native `.so` outputs survive — otherwise `ndk-make.sh` recompiles the Rust core (slow).
 4. Bump the version per feature (see Versioning).
 5. On "Push." (or similar), commit and push to `origin custom`: stage only the specific feature files by **explicit path** (never `git add -A`; **never** the working-tree `gradle/wrapper/gradle-wrapper.properties` timeout bump), and update this skill in the **same commit** (commit list, customization entry, conflict-file map, traps, current version). End the commit message with the `Co-Authored-By: Claude` trailer. Once it's committed and pushed there is nothing left to sync — the working tree is the source of truth (no post-push re-sync step; that was a browser-chat patch-workflow relic).
