@@ -39,6 +39,7 @@ public class ProfileAdapter extends RecyclerView.Adapter {
   public static final int ITEM_LAST_SEEN = 40;
   public static final int ITEM_BLOCKED = 43;
   public static final int ITEM_INTRODUCED_BY = 45;
+  public static final int ITEM_EMAIL = 47; // shiroikuma fork: contact's email address row
   public static final int ITEM_HEADER = 53;
   public static final int ITEM_MEMBERS = 55;
   public static final int ITEM_SHARED_CHATS = 60;
@@ -154,7 +155,8 @@ public class ProfileAdapter extends RecyclerView.Adapter {
       return new ViewHolder(item);
     } else if (viewType == ITEM_LAST_SEEN
         || viewType == ITEM_INTRODUCED_BY
-        || viewType == ITEM_BLOCKED) {
+        || viewType == ITEM_BLOCKED
+        || viewType == ITEM_EMAIL) {
       final ProfileTextItem item =
           (ProfileTextItem) layoutInflater.inflate(R.layout.profile_text_item_small, parent, false);
       return new ViewHolder(item);
@@ -224,6 +226,11 @@ public class ProfileAdapter extends RecyclerView.Adapter {
     } else if (holder.itemView instanceof ProfileAvatarItem) {
       ProfileAvatarItem item = (ProfileAvatarItem) holder.itemView;
       item.setAvatarClickListener(view -> clickListener.onAvatarClicked());
+      item.setOnLongClickListener(
+          view -> {
+            clickListener.onNameLongClicked();
+            return true;
+          });
       item.set(glideRequests, dcChat, dcContact, memberList);
     } else if (holder.itemView instanceof ProfileTextItem) {
       ProfileTextItem item = (ProfileTextItem) holder.itemView;
@@ -265,6 +272,8 @@ public class ProfileAdapter extends RecyclerView.Adapter {
     void onSettingsClicked(int settingsId);
 
     void onStatusLongClicked(boolean isMultiUser);
+
+    void onNameLongClicked();
 
     void onSharedChatClicked(int chatId);
 
@@ -338,6 +347,15 @@ public class ProfileAdapter extends RecyclerView.Adapter {
       itemData.add(new ItemData(ITEM_SIGNATURE, itemDataStatusText, 0));
     } else {
       itemData.add(new ItemData(ITEM_DIVIDER, null, 0));
+    }
+
+    // shiroikuma fork: show the contact's email address (the stable identifier - not shown in the
+    // header, which only carries the name + last-seen). Tapping the row copies it.
+    if (dcContact != null && !isDeviceTalk && !isSelfTalk) {
+      String addr = dcContact.getAddr();
+      if (addr != null && !addr.isEmpty()) {
+        itemData.add(new ItemData(ITEM_EMAIL, addr, R.drawable.ic_alternate_email_24));
+      }
     }
 
     itemData.add(
