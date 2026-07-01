@@ -589,6 +589,17 @@
             </intent-filter>
         </receiver>
 
+        <!-- shiroikuma fork: local, same-device control channel for "protected contacts".
+             Exported so the companion's background automation can deliver an explicit broadcast
+             while the app is backgrounded. -->
+        <receiver
+            android:name=".automation.ProtectedContactsReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="shiroikuma.arcanechat.action.SET_PROTECTED_CONTACTS" />
+            </intent-filter>
+        </receiver>
+
         <uses-library
             android:name="com.sec.android.app.multiwindow"
             android:required="false" />
