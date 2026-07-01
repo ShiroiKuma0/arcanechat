@@ -17,6 +17,7 @@ import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.NonNull;
@@ -51,6 +52,7 @@ import org.thoughtcrime.securesms.ConversationActivity;
 import org.thoughtcrime.securesms.ConversationListActivity;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.ShareActivity;
+import org.thoughtcrime.securesms.automation.ProtectedContacts;
 import org.thoughtcrime.securesms.calls.CallActionReceiver;
 import org.thoughtcrime.securesms.calls.CallActivity;
 import org.thoughtcrime.securesms.connect.DcHelper;
@@ -269,6 +271,12 @@ public class NotificationCenter {
   public static final String CH_INFO = "ch_info";
 
   public static final String CH_CALLS_PREFIX = "call_chan";
+  // shiroikuma fork: dedicated IMPORTANCE_LOW channel for the content-free "protected" notifications.
+  public static final String CH_PROTECTED = "ch_protected";
+
+  // shiroikuma fork: marker extra set on a protected-contact notification so the companion app can
+  // recognise it. Value is a boolean true.
+  public static final String EXTRA_PROTECTED = "shiroikuma.arcanechat.protected";
 
   private boolean notificationChannelsSupported() {
     return Build.VERSION.SDK_INT >= 26;
@@ -706,6 +714,15 @@ public class NotificationCenter {
       NotificationPrivacyPreference privacy = Prefs.getNotificationPrivacy(context);
       ChatData chatData = new ChatData(accountId, chatId);
 
+      // shiroikuma fork: if the message's sender is a "protected" contact, post a content-free
+      // (vague) notification instead of the rich one - and nothing else leaks. Every path that
+      // posts a chat notification funnels through here, so this single guard covers them all.
+      if (isProtectedSender(dcContext, msgId)) {
+        buildAndShowVagueNotification(
+            notificationManager, accountId, chatId, msgId, chatData, signal, includeSummary);
+        return;
+      }
+
       // Create basic notification
       NotificationCompat.Builder builder =
           new NotificationCompat.Builder(context, notificationChannel)
@@ -917,6 +934,134 @@ public class NotificationCenter {
       }
     } catch (Exception e) {
       Log.e(TAG, "cannot show notification", e);
+    }
+  }
+
+  /**
+   * shiroikuma fork: best-effort, non-blocking test of whether the sender of {@code msgId} is a
+   * protected contact. Runs on the notification worker thread. Any failure is swallowed and treated
+   * as "not protected", so a normal notification is never broken by this check.
+   */
+  @WorkerThread
+  private boolean isProtectedSender(DcContext dcContext, int msgId) {
+    try {
+      if (ProtectedContacts.isEmpty(context)) {
+        return false;
+      }
+      DcMsg dcMsg = dcContext.getMsg(msgId);
+      DcContact sender = dcContext.getContact(dcMsg.getFromId());
+      return ProtectedContacts.isProtected(context, sender);
+    } catch (Throwable t) {
+      Log.w(TAG, "protected-sender check failed", t);
+      return false;
+    }
+  }
+
+  /**
+   * shiroikuma fork: a dedicated, quiet ({@code IMPORTANCE_LOW}) channel for the content-free
+   * protected notifications - no sound, no heads-up, secret on the lockscreen - created on demand.
+   */
+  private String getProtectedNotificationChannel(NotificationManagerCompat notificationManager) {
+    if (notificationChannelsSupported()) {
+      try {
+        if (notificationManager.getNotificationChannel(CH_PROTECTED) == null) {
+          NotificationChannel channel =
+              new NotificationChannel(
+                  CH_PROTECTED,
+                  context.getString(R.string.protected_notification_channel_name),
+                  NotificationManager.IMPORTANCE_LOW);
+          channel.setGroup(getNotificationChannelGroup(notificationManager));
+          channel.setShowBadge(true);
+          channel.setSound(null, null);
+          channel.enableLights(false);
+          channel.enableVibration(false);
+          channel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
+          notificationManager.createNotificationChannel(channel);
+        }
+      } catch (Exception e) {
+        Log.e(TAG, "Error in getProtectedNotificationChannel()", e);
+      }
+    }
+    return CH_PROTECTED;
+  }
+
+  /**
+   * shiroikuma fork: post a content-free notification for a protected sender - no sender name, no
+   * message text, no avatar / reply-actions / style - so nothing sensitive appears on the
+   * lockscreen, shade, or Android Auto, while the notification is still posted. The companion app
+   * detects it via the {@link #EXTRA_PROTECTED} marker to fire its own edge-blink alert.
+   */
+  @WorkerThread
+  private void buildAndShowVagueNotification(
+      NotificationManagerCompat notificationManager,
+      int accountId,
+      int chatId,
+      int msgId,
+      ChatData chatData,
+      boolean signal,
+      boolean includeSummary) {
+    try {
+      String channel = getProtectedNotificationChannel(notificationManager);
+
+      String title = ProtectedContacts.getTitle(context);
+      if (TextUtils.isEmpty(title.trim())) {
+        title = context.getString(R.string.app_name);
+      }
+      String text = ProtectedContacts.getBody(context);
+      if (TextUtils.isEmpty(text.trim())) {
+        text = context.getString(R.string.app_name);
+      }
+
+      Bundle marker = new Bundle();
+      marker.putBoolean(EXTRA_PROTECTED, true);
+
+      NotificationCompat.Builder builder =
+          new NotificationCompat.Builder(context, channel)
+              .setSmallIcon(R.drawable.icon_notification)
+              .setColor(context.getResources().getColor(R.color.def_accent))
+              .setPriority(NotificationCompat.PRIORITY_LOW)
+              .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+              .setOnlyAlertOnce(!signal)
+              .setLocalOnly(true)
+              .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+              .setContentTitle(title)
+              .setContentText(text)
+              .setDeleteIntent(getMarkAsReadIntent(chatData, msgId, false))
+              .setContentIntent(getOpenChatIntent(chatData))
+              .addExtras(marker);
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        builder.setGroup(GRP_MSG + "." + accountId);
+      }
+
+      try {
+        notificationManager.notify(
+            String.valueOf(accountId), ID_MSG_OFFSET + chatId, builder.build());
+      } catch (Exception e) {
+        Log.e(TAG, "cannot add protected notification", e);
+      }
+
+      // Keep the generic group summary so protected notifications still group with the rest; it is
+      // itself content-free.
+      if (includeSummary && Build.VERSION.SDK_INT >= 24) {
+        try {
+          NotificationCompat.Builder summary =
+              new NotificationCompat.Builder(context, channel)
+                  .setGroup(GRP_MSG + "." + accountId)
+                  .setGroupSummary(true)
+                  .setSmallIcon(R.drawable.icon_notification)
+                  .setColor(context.getResources().getColor(R.color.def_accent, null))
+                  .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+                  .setLocalOnly(true)
+                  .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+                  .setContentIntent(getOpenChatlistIntent(accountId));
+          notificationManager.notify(String.valueOf(accountId), ID_MSG_SUMMARY, summary.build());
+        } catch (Exception e) {
+          Log.e(TAG, "cannot add protected notification summary", e);
+        }
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "cannot show protected notification", e);
     }
   }
 
