@@ -2,6 +2,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- common strings without special context -->
     <string name="app_name">白い熊 ArcaneChat</string>
+    <!-- shiroikuma fork: name of the quiet channel used for content-free "protected contact" notifications -->
+    <string name="protected_notification_channel_name">Protected contacts</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="clear_search">Clear Search</string>
