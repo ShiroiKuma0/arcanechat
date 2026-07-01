@@ -193,7 +193,24 @@ public class ProfileFragment extends Fragment
       case ProfileAdapter.ITEM_INTRODUCED_BY:
         onVerifiedByClicked();
         break;
+      case ProfileAdapter.ITEM_EMAIL:
+        onCopyEmail();
+        break;
     }
+  }
+
+  private void onCopyEmail() {
+    if (contactId <= 0) {
+      return;
+    }
+    String addr = dcContext.getContact(contactId).getAddr();
+    if (addr == null || addr.isEmpty()) {
+      return;
+    }
+    Context context = requireContext();
+    Util.writeTextToClipboard(context, addr);
+    Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT)
+        .show();
   }
 
   @Override
@@ -205,6 +222,53 @@ public class ProfileFragment extends Fragment
             new CharSequence[] {context.getString(R.string.menu_copy_to_clipboard)},
             (dialogInterface, i) -> {
               Util.writeTextToClipboard(context, adapter.getStatusText());
+              Toast.makeText(
+                      context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT)
+                  .show();
+            })
+        .setNegativeButton(R.string.cancel, null)
+        .show();
+  }
+
+  @Override
+  public void onNameLongClicked() {
+    Context context = requireContext();
+
+    // Offer the copyable entries. For a contact the header only ever shows the display name (the
+    // local nickname, if one is set), so surface the real/authorized name too and put it first —
+    // this lets the real contact-name be copied even when a nickname hides it — followed by the
+    // email address (the stable identifier), so it can be copied straight from here as well.
+    final List<String> entries = new ArrayList<>();
+    if (contactId > 0) {
+      DcContact dcContact = dcContext.getContact(contactId);
+      String authName = dcContact.getAuthName();
+      if (authName != null && !authName.isEmpty()) {
+        entries.add(authName);
+      }
+      String displayName = dcContact.getDisplayName();
+      if (displayName != null && !displayName.isEmpty() && !entries.contains(displayName)) {
+        entries.add(displayName);
+      }
+      String addr = dcContact.getAddr();
+      if (addr != null && !addr.isEmpty() && !entries.contains(addr)) {
+        entries.add(addr);
+      }
+    } else if (chatId > 0) {
+      String chatName = dcContext.getChat(chatId).getName();
+      if (chatName != null && !chatName.isEmpty()) {
+        entries.add(chatName);
+      }
+    }
+    if (entries.isEmpty()) {
+      return;
+    }
+
+    new AlertDialog.Builder(context)
+        .setTitle(R.string.menu_copy_to_clipboard)
+        .setItems(
+            entries.toArray(new CharSequence[0]),
+            (dialogInterface, i) -> {
+              Util.writeTextToClipboard(context, entries.get(i));
               Toast.makeText(
                       context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT)
                   .show();
