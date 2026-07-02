@@ -1,5 +1,6 @@
 package org.thoughtcrime.securesms.automation;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +28,10 @@ import org.thoughtcrime.securesms.util.Util;
  *
  * <p>All work is done off the main thread via {@link #goAsync()} so {@code onReceive} never blocks
  * / ANRs, and persistence survives process death (see {@link ProtectedContacts}).
+ *
+ * <p>A second action, {@code GET_PROTECTED_CONTACTS}, lets the companion verify the stored list:
+ * it answers an <b>ordered</b> broadcast synchronously with {@code RESULT_OK} and the pipe-joined
+ * lowercase set as the result data ({@code "EMPTY"} when the list has no entries).
  */
 public class ProtectedContactsReceiver extends BroadcastReceiver {
 
@@ -34,6 +39,11 @@ public class ProtectedContactsReceiver extends BroadcastReceiver {
 
   public static final String ACTION_SET_PROTECTED_CONTACTS =
       "shiroikuma.arcanechat.action.SET_PROTECTED_CONTACTS";
+  public static final String ACTION_GET_PROTECTED_CONTACTS =
+      "shiroikuma.arcanechat.action.GET_PROTECTED_CONTACTS";
+
+  /** Ordered-broadcast reply when the stored list has no entries (distinguishes from no answer). */
+  public static final String RESULT_EMPTY = "EMPTY";
 
   private static final String EXTRA_CONTACTS = "contacts";
   private static final String EXTRA_MODE = "mode";
@@ -42,7 +52,25 @@ public class ProtectedContactsReceiver extends BroadcastReceiver {
 
   @Override
   public void onReceive(Context context, Intent intent) {
-    if (intent == null || !ACTION_SET_PROTECTED_CONTACTS.equals(intent.getAction())) {
+    if (intent == null) {
+      return;
+    }
+
+    // Read-back channel: answer an ordered broadcast with the persisted list — synchronously,
+    // in onReceive (a quick local preference read; no goAsync on this path). "EMPTY" when the
+    // list has no entries, else the pipe-joined lowercase set exactly as stored.
+    if (ACTION_GET_PROTECTED_CONTACTS.equals(intent.getAction())) {
+      try {
+        String joined = ProtectedContacts.getJoined(context.getApplicationContext());
+        setResultCode(Activity.RESULT_OK);
+        setResultData(joined.isEmpty() ? RESULT_EMPTY : joined);
+      } catch (Throwable t) {
+        Log.w(TAG, "failed to answer protected-contacts query", t);
+      }
+      return;
+    }
+
+    if (!ACTION_SET_PROTECTED_CONTACTS.equals(intent.getAction())) {
       return;
     }
 

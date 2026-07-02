@@ -47,6 +47,14 @@ public final class ProtectedContacts {
   }
 
   /**
+   * @return the stored set as a single pipe-joined, lowercase string ("" when empty) — the exact
+   *     read-back format of the {@code GET_PROTECTED_CONTACTS} query.
+   */
+  public static synchronized String getJoined(Context context) {
+    return join(getSet(context));
+  }
+
+  /**
    * Apply an incoming update from the companion.
    *
    * @param contactsRaw the {@code contacts} extra — a single {@code |}-separated string. May be
