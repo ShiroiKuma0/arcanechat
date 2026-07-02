@@ -596,6 +596,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="shiroikuma.arcanechat.action.SET_PROTECTED_CONTACTS" />
+                <action android:name="shiroikuma.arcanechat.action.GET_PROTECTED_CONTACTS" />
             </intent-filter>
         </receiver>
 
