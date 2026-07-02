@@ -1,57 +1,60 @@
-## ArcaneChat Android Client
+<div align="center">
 
-A [Delta Chat](https://delta.chat/) client for Android. Learn more at: https://arcanechat.me
+<img src="src/main/ic_launcher-playstore.png" width="120" alt="白い熊 ArcaneChat icon" />
 
-[<img src="store/get-it-on-gplay.png" alt="Get it on Google Play" height="48">](https://play.google.com/store/apps/details?id=com.github.arcanechat)
-[<img src="store/get-it-on-fdroid.png" alt="Get it on F-Droid" height="48">](https://f-droid.org/packages/chat.delta.lite)
-[<img src="store/get-it-on-github.png" alt="Get it on GitHub" height="48">](https://github.com/ArcaneChat/android/releases/latest/download/ArcaneChat-gplay.apk)
+# 白い熊 ArcaneChat
 
+**A fully re-themeable ArcaneChat — every colour, font, and surface yours, plus automation hooks no stock messenger has.**
 
-<img alt="Screenshot" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="298" /> <img alt="Screenshot" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="298" />
+A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, accent presets, selectable chat-list styles, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
 
-# ArcaneChat vs Delta Chat
+Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-Main differences with Delta Chat client:
+**📥 Latest release: [`2.53.0+5`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
-* Support for having multiple mini-apps open at the same time
-* You can keep reading and navigating the chats while you have a mini-app open
-* Support for some markdown styles in text messages (bold, italic, strike, etc.)
-* Support for displaying Telegram's animated stickers (.tgs files)
-* Support for SVG images previews
-* Multiple color themes/skins
-* It is possible to disable profiles to completely disconnect them saving data/bandwidth
-* Clicking on a message with a POI location, will open the POI on the map
-* Last-seen status of contacts is shown in your contact list, like in WhatsApp, Telegram, etc.
-* Videos are played in loop, useful for short GIF videos
-* Verified icon is shown in the chat list for the "Device Messages" and "Saved Messages" chat to avoid fishing attempts by someone pretending to be the official chats
-* Voice messages have more aggressive compression in "worse quality" mode to save data plan
-* Automatic download of messages limited to 640KB by default
-* Profile's display name is always shown in the app's title bar instead of the name of the app
-* Better settings organization with additional "Privacy" section
+</div>
 
-## WebXDC
+---
 
-ArcaneChat has some extended support for WebXDC (in-chat mini-apps):
+## 🎨 Every surface, your colours
 
-- `window.webxdc.arcanechat` a string with the ArcaneChat version and can be used by app developers
-  to detect when they can use the ArcaneChat-specific features.
-- `sendToChat()`: extra property `subject` can be set to a text string to set message/email's subject.
-- `sendToChat()`: extra property `html` can be set to a string of html markup to set the HTML part of the email/message.
-- `sendToChat()`: the file object parameter also accepts a `type` field that can be one of:
-  * `"sticker"`
-  * `"image"`
-  * `"audio"`
-  * `"video"`
-  * `"file"` (default if `type` field is not present)
+A dedicated **白い熊 ArcaneChat UI** settings page (reachable from the chat-list menu and Settings) controls the app's whole look: message text, bubble fill, and bubble border — each split into **incoming and outgoing** — conversation background, chat-list title / preview / date, and the new-chat button, all picked with a live RGB/hex colour picker. Defaults reproduce the fork's signature **yellow-on-black** palette; one **Reset** restores it.
 
-# Contributing
+## 🔤 Fonts everywhere — including your own files
 
-AI tools must not be used to submit AI-generated code or content without review or understanding.
-All pull requests descriptions and code comments must be human-generated.
-AI-generated pull requests will be closed without a notice.
+Independent font **family, weight, and size** per text surface: chat messages, the conversation title, chat-list titles / previews / dates, and the entire Settings UI. Beyond the system families, pick any **`.ttf`/`.otf` file** from storage and it appears in every font list — sizes go up to 300 sp for true large-print use, and chat-list rows grow to fit.
 
-# Credits
+## ✨ Accent presets & chat-list styles
 
-ArcaneChat is based on the [official Delta Chat client](https://github.com/deltachat/deltachat-android) with several improvements.
+Eight one-tap **accent presets** (yellow, white, cyan, green, orange, red, magenta, blue) drive ripples, switches, dialogs, popup menus, the compose bar, and document chips together. The chat list itself has **six selectable row styles** — rounded cards, filled cards, accent bar, dividers, inset dividers, or plain.
 
-ArcaneChat uses a [modified](https://github.com/ArcaneChat/core) version of the [Chatmail Core Library](https://github.com/chatmail/core).
+## 🛡️ Protected contacts (companion automation)
+
+A local broadcast channel (`SET_PROTECTED_CONTACTS` / `GET_PROTECTED_CONTACTS`) lets a companion app mark contacts as **protected**: their incoming messages post a **content-free notification** — no sender, no text, secret on the lockscreen — while still firing, with a marker extra so the companion's own alerting (e.g. an edge-blink) keeps working. Non-protected contacts are untouched.
+
+## 📋 Profile copy conveniences
+
+The contact profile finally **shows the email address** (tap to copy), and long-pressing the name offers the **real contact name**, the nickname, and the address — each one tap to the clipboard, even when a local nickname hides the real name.
+
+## 🌐 In-app language picker
+
+Switch the app language from Settings → Appearance without touching the system locale (AndroidX per-app locales).
+
+---
+
+## Built on ArcaneChat
+
+A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) (app id `shiroikuma.arcanechat`, so it coexists with the official build), which is itself a friendly fork of [Delta Chat](https://delta.chat/) — decentralized, end-to-end-encrypted messaging over e-mail, no phone number, no central servers. The code remains under **GPL-3.0**.
+
+## Building
+
+```bash
+git clone --recursive git@github.com:ShiroiKuma0/arcanechat.git
+cd arcanechat && git checkout custom
+# Rust core (arm64), then the foss flavor:
+rustup target add aarch64-linux-android --toolchain "$(cat scripts/rust-toolchain)"
+scripts/ndk-make.sh arm64-v8a
+./gradlew assembleFossRelease -PABI_FILTER=arm64-v8a
+```
+
+Requires JDK 17+, the Android SDK with NDK `27.0.12077973`, and rustup. Release signing reads the `DC_RELEASE_*` properties from `~/.gradle/gradle.properties`.
