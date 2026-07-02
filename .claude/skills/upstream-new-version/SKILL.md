@@ -173,10 +173,9 @@ Stop after Step 6 with a built, signed, sideloaded `<new>+1` APK and **wait**. W
 r() { "$@" 2> >(sed $'s/.*/\033[1;31m&\033[0m/' >&2); }
 cd ~/git/shiroikuma-arcanechat
 
-r git checkout main
+# Push the refs directly - NO branch checkouts here: the rebrand.sh working-tree noise
+# (see Banked failures) makes `git checkout main` abort, and pushing needs no checkout.
 r git push origin main                          # fast-forward, safe
-
-r git checkout custom
 r git push --force-with-lease origin custom     # rebased history → force-with-lease
 ```
 
