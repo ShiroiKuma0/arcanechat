@@ -7,7 +7,20 @@
      each control by key (colour swatch + RGB/hex dialog, font picker, accent + chat-list pickers). -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="@string/pref_ui_section_general">
+    <PreferenceCategory
+        android:title="@string/pref_ui_section_eximport"
+        android:layout="@layout/preference_category_shiroikuma_first">
+        <Preference
+            android:key="pref_eximport"
+            android:title="@string/eim_row_title"
+            android:summary="@string/eim_row_summary"
+            android:layout="@layout/preference_shiroikuma_indent1"
+            android:persistent="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_ui_section_general"
+        android:layout="@layout/preference_category_shiroikuma">
         <ListPreference
             android:key="pref_accent"
             android:title="@string/pref_accent"
@@ -17,7 +30,9 @@
             android:persistent="false" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_ui_section_chatlist">
+    <PreferenceCategory
+        android:title="@string/pref_ui_section_chatlist"
+        android:layout="@layout/preference_category_shiroikuma">
 
         <Preference
             android:layout="@layout/preference_shiroikuma_subheader"
@@ -81,7 +96,9 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_ui_section_conversation">
+    <PreferenceCategory
+        android:title="@string/pref_ui_section_conversation"
+        android:layout="@layout/preference_category_shiroikuma">
 
         <Preference
             android:layout="@layout/preference_shiroikuma_subheader"
@@ -154,7 +171,9 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_ui_section_settings_screen">
+    <PreferenceCategory
+        android:title="@string/pref_ui_section_settings_screen"
+        android:layout="@layout/preference_category_shiroikuma">
         <Preference
             android:layout="@layout/preference_shiroikuma_subheader"
             android:title="@string/pref_fonts_category"
@@ -167,7 +186,9 @@
             android:persistent="false" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_ui_section_custom_fonts">
+    <PreferenceCategory
+        android:title="@string/pref_ui_section_custom_fonts"
+        android:layout="@layout/preference_category_shiroikuma">
         <Preference
             android:key="pref_font_add"
             android:title="@string/pref_font_add"
@@ -176,7 +197,9 @@
             android:persistent="false" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_ui_section_reset">
+    <PreferenceCategory
+        android:title="@string/pref_ui_section_reset"
+        android:layout="@layout/preference_category_shiroikuma">
         <Preference
             android:key="pref_reset_ui"
             android:title="@string/pref_reset_ui"
