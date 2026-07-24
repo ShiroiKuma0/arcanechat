@@ -8,24 +8,30 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.preference.PreferenceManager;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import chat.delta.rpc.Rpc;
+import com.b44t.messenger.DcAccounts;
+import com.b44t.messenger.DcContext;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.thoughtcrime.securesms.BuildConfig;
 import org.thoughtcrime.securesms.R;
+import org.thoughtcrime.securesms.connect.DcHelper;
 
 /**
  * shiroikuma fork: Export/Import engine for all app settings, mirroring the Kōjiki fork's model —
@@ -53,6 +59,8 @@ public final class ShiroikumaExport {
 
   /** The selectable categories; {@code id} doubles as the JSON entry name inside the zip. */
   public enum Cat {
+    // declaration order is dialog order - accounts first
+    ACCOUNTS("accounts", R.string.eim_cat_accounts),
     UI("ui", R.string.eim_cat_ui),
     PROTECTED("protected_contacts", R.string.eim_cat_protected),
     APP("app_settings", R.string.eim_cat_app);
@@ -83,6 +91,8 @@ public final class ShiroikumaExport {
 
   private static boolean inCategory(Cat cat, String key) {
     switch (cat) {
+      case ACCOUNTS:
+        return false; // not prefs-based - handled by exportAccounts()/importAccounts()
       case UI:
         return isUiKey(key);
       case PROTECTED:
@@ -103,10 +113,15 @@ public final class ShiroikumaExport {
         + ".zip";
   }
 
-  /** Builds the export zip for the given categories. */
-  public static byte[] export(@NonNull Context context, @NonNull List<Cat> cats) throws Exception {
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    try (ZipOutputStream zip = new ZipOutputStream(bos)) {
+  /**
+   * Streams the export zip for the given categories to {@code out} (account backups can be far too
+   * large for an in-memory build). The caller owns the stream and should delete the target file if
+   * this throws midway.
+   */
+  public static void export(
+      @NonNull Context context, @NonNull List<Cat> cats, @NonNull OutputStream out)
+      throws Exception {
+    try (ZipOutputStream zip = new ZipOutputStream(out)) {
       JSONArray catIds = new JSONArray();
       for (Cat c : cats) catIds.put(c.id);
       JSONObject manifest =
@@ -120,10 +135,69 @@ public final class ShiroikumaExport {
 
       SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
       for (Cat cat : cats) {
-        writeEntry(zip, cat.id + ".json", exportPrefs(sp, cat));
+        if (cat == Cat.ACCOUNTS) {
+          exportAccounts(context, zip);
+        } else {
+          writeEntry(zip, cat.id + ".json", exportPrefs(sp, cat));
+        }
       }
     }
-    return bos.toByteArray();
+  }
+
+  /**
+   * One core backup tar per configured account, via the blocking JSON-RPC {@code export_backup}
+   * (unencrypted, like the in-app backup), plus an {@code accounts.json} index whose presence marks
+   * the category in the zip. Unconfigured accounts have nothing to back up and are skipped.
+   */
+  private static void exportAccounts(Context context, ZipOutputStream zip) throws Exception {
+    DcAccounts accounts = DcHelper.getAccounts(context);
+    Rpc rpc = DcHelper.getRpc(context);
+    File tmpRoot = new File(context.getCacheDir(), "shiroikuma-eximport");
+    deleteRecursive(tmpRoot);
+    JSONArray index = new JSONArray();
+    try {
+      int n = 0;
+      for (int accountId : accounts.getAll()) {
+        DcContext acc = accounts.getAccount(accountId);
+        if (acc.isConfigured() == 0) continue;
+        // a per-account empty dir makes the produced tar unambiguous
+        File dir = new File(tmpRoot, "acc-" + accountId);
+        if (!dir.mkdirs()) throw new IllegalStateException("cannot create " + dir);
+        rpc.exportBackup(accountId, dir.getAbsolutePath(), null);
+        File[] produced = dir.listFiles();
+        if (produced == null || produced.length == 0) {
+          throw new IllegalStateException("no backup produced for account " + accountId);
+        }
+        String entryName = "accounts/" + (++n) + ".tar";
+        index.put(
+            new JSONObject()
+                .put("addr", String.valueOf(acc.getConfig("addr")))
+                .put("name", String.valueOf(acc.getConfig("displayname")))
+                .put("tar", entryName));
+        zip.putNextEntry(new ZipEntry(entryName));
+        try (InputStream in = new FileInputStream(produced[0])) {
+          copy(in, zip);
+        }
+        zip.closeEntry();
+        deleteRecursive(dir); // free the temp tar before the next account
+      }
+    } finally {
+      deleteRecursive(tmpRoot);
+    }
+    writeEntry(zip, Cat.ACCOUNTS.id + ".json", new JSONObject().put("accounts", index).toString(2));
+  }
+
+  private static void copy(InputStream in, OutputStream out) throws Exception {
+    byte[] buf = new byte[65536];
+    int n;
+    while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+  }
+
+  private static void deleteRecursive(File f) {
+    File[] children = f.listFiles();
+    if (children != null) for (File c : children) deleteRecursive(c);
+    //noinspection ResultOfMethodCallIgnored
+    f.delete();
   }
 
   private static void writeEntry(ZipOutputStream zip, String name, String content)
@@ -167,16 +241,15 @@ public final class ShiroikumaExport {
 
   /** The categories present in an export zip; empty if it isn't one of ours. */
   @NonNull
-  public static List<Cat> categoriesIn(@NonNull byte[] bytes) {
+  public static List<Cat> categoriesIn(@NonNull ZipFile zip) {
     List<Cat> out = new ArrayList<>();
     try {
-      Map<String, byte[]> files = readZip(bytes);
-      byte[] manifest = files.get("manifest.json");
+      String manifest = readEntry(zip, "manifest.json");
       if (manifest == null) return out;
-      JSONObject m = new JSONObject(new String(manifest, "UTF-8"));
+      JSONObject m = new JSONObject(manifest);
       if (!FORMAT.equals(m.optString("format"))) return out;
       for (Cat c : Cat.values()) {
-        if (files.containsKey(c.id + ".json")) out.add(c);
+        if (zip.getEntry(c.id + ".json") != null) out.add(c);
       }
     } catch (Exception ignored) {
     }
@@ -186,27 +259,109 @@ public final class ShiroikumaExport {
   // --- import -------------------------------------------------------------------------------
 
   /**
-   * Applies the selected categories from an export zip; categories missing from the zip are
-   * skipped. Returns a human-readable per-category summary, or null when the file carried none.
+   * Applies the selected categories from an export zip (backed by a file so account tars stream
+   * rather than load into memory); categories missing from the zip are skipped. Returns a
+   * human-readable per-category summary, or null when the file carried none.
    */
   @Nullable
   public static String importData(
-      @NonNull Context context, @NonNull byte[] bytes, @NonNull List<Cat> cats) throws Exception {
-    Map<String, byte[]> files = readZip(bytes);
-    if (files.get("manifest.json") == null) return null;
+      @NonNull Context context, @NonNull ZipFile zip, @NonNull List<Cat> cats) throws Exception {
+    if (zip.getEntry("manifest.json") == null) return null;
 
     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
     StringBuilder summary = new StringBuilder();
     boolean any = false;
     for (Cat cat : cats) {
-      byte[] data = files.get(cat.id + ".json");
+      String data = readEntry(zip, cat.id + ".json");
       if (data == null) continue;
-      int n = importPrefs(sp, new String(data, "UTF-8"), cat);
+      String line;
+      if (cat == Cat.ACCOUNTS) {
+        line = importAccounts(context, zip, data);
+      } else {
+        line = String.valueOf(importPrefs(sp, data, cat));
+      }
       any = true;
       if (summary.length() > 0) summary.append('\n');
-      summary.append(context.getString(cat.labelRes)).append(": ").append(n);
+      summary.append(context.getString(cat.labelRes)).append(": ").append(line);
     }
     return any ? summary.toString() : null;
+  }
+
+  /**
+   * Restores each backup tar into a freshly created account via the blocking JSON-RPC
+   * {@code import_backup}. Merge semantics like the prefs categories: an address that already has a
+   * local account is skipped, existing accounts are never touched, and a failed restore removes its
+   * half-created account and continues with the rest. Returns the summary line for the category.
+   */
+  private static String importAccounts(Context context, ZipFile zip, String indexJson)
+      throws Exception {
+    DcAccounts accounts = DcHelper.getAccounts(context);
+    Rpc rpc = DcHelper.getRpc(context);
+
+    Set<String> existing = new HashSet<>();
+    for (int accountId : accounts.getAll()) {
+      String addr = accounts.getAccount(accountId).getConfig("addr");
+      if (addr != null && !addr.isEmpty()) existing.add(addr.toLowerCase(Locale.ROOT));
+    }
+    int selectedBefore = accounts.getSelectedAccount().getAccountId();
+
+    JSONArray index = new JSONObject(indexJson).optJSONArray("accounts");
+    int imported = 0;
+    int skipped = 0;
+    int failed = 0;
+    try {
+      for (int i = 0; index != null && i < index.length(); i++) {
+        JSONObject item = index.getJSONObject(i);
+        String addr = item.optString("addr");
+        if (!addr.isEmpty() && existing.contains(addr.toLowerCase(Locale.ROOT))) {
+          skipped++;
+          continue;
+        }
+        ZipEntry entry = zip.getEntry(item.getString("tar"));
+        if (entry == null) {
+          failed++;
+          continue;
+        }
+        File tmp = File.createTempFile("shiroikuma-eximport", ".tar", context.getCacheDir());
+        try {
+          try (InputStream in = zip.getInputStream(entry);
+              OutputStream out = new FileOutputStream(tmp)) {
+            copy(in, out);
+          }
+          int newId = rpc.addAccount();
+          try {
+            rpc.importBackup(newId, tmp.getAbsolutePath(), null);
+            imported++;
+            if (!addr.isEmpty()) existing.add(addr.toLowerCase(Locale.ROOT));
+          } catch (Exception e) {
+            accounts.removeAccount(newId);
+            failed++;
+          }
+        } finally {
+          //noinspection ResultOfMethodCallIgnored
+          tmp.delete();
+        }
+      }
+    } finally {
+      // addAccount() selects the new account - put the user's selection back
+      accounts.selectAccount(selectedBefore);
+      if (imported > 0) accounts.startIo();
+    }
+
+    String line = context.getString(R.string.eim_accounts_result, imported, skipped);
+    if (failed > 0) line += context.getString(R.string.eim_accounts_failed, failed);
+    return line;
+  }
+
+  @Nullable
+  private static String readEntry(ZipFile zip, String name) throws Exception {
+    ZipEntry entry = zip.getEntry(name);
+    if (entry == null) return null;
+    java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+    try (InputStream in = zip.getInputStream(entry)) {
+      copy(in, bos);
+    }
+    return bos.toString("UTF-8");
   }
 
   /** Per-key merge — never clears, so unrelated/device-local keys survive. Returns keys applied. */
@@ -248,22 +403,6 @@ public final class ShiroikumaExport {
     }
     ed.apply();
     return count;
-  }
-
-  private static Map<String, byte[]> readZip(byte[] bytes) throws Exception {
-    Map<String, byte[]> out = new HashMap<>();
-    try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(bytes))) {
-      ZipEntry entry;
-      byte[] buf = new byte[8192];
-      while ((entry = zip.getNextEntry()) != null) {
-        if (entry.isDirectory()) continue;
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int n;
-        while ((n = zip.read(buf)) > 0) bos.write(buf, 0, n);
-        out.put(entry.getName(), bos.toByteArray());
-      }
-    }
-    return out;
   }
 
   // --- export directory + latest-export probe ----------------------------------------------
