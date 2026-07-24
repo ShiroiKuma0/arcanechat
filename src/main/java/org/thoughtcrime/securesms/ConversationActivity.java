@@ -1085,11 +1085,9 @@ public class ConversationActivity extends PassphraseRequiredActionBarActivity
 
     composeText.setOnEditorActionListener(sendButtonListener);
     attachButton.setOnClickListener(new AttachButtonListener());
-    attachButton.setOnLongClickListener(new AttachButtonLongClickListener());
     // shiroikuma fork (Step 8): left-side paperclip triggers the same attach flow
     if (attachButtonLeft != null) {
       attachButtonLeft.setOnClickListener(new AttachButtonListener());
-      attachButtonLeft.setOnLongClickListener(new AttachButtonLongClickListener());
     }
     sendButton.setOnClickListener(sendButtonListener);
     sendButton.setEnabled(true);
