@@ -42,6 +42,7 @@ import org.thoughtcrime.securesms.util.Prefs;
 import org.thoughtcrime.securesms.util.ResUtil;
 import org.thoughtcrime.securesms.util.ShiroikumaExport;
 import org.thoughtcrime.securesms.util.Util;
+import org.thoughtcrime.securesms.util.views.ProgressDialog;
 
 /**
  * shiroikuma fork (Step 10): the consolidated "白い熊 ArcaneChat UI" page. Holds every customization
@@ -97,10 +98,12 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
           uri -> {
             if (uri != null) onEximportFilePicked(uri);
           });
-  private byte[] pendingExportBytes;
+  private List<ShiroikumaExport.Cat> pendingExportCats;
   private List<ShiroikumaExport.Cat> pendingImportCats;
   @Nullable private TextView eimFolderTv;
   @Nullable private TextView eimStatusTv;
+  @Nullable private ProgressDialog eimProgressDialog;
+  @Nullable private AlertDialog eximDialog;
 
   @Override
   public void onCreatePreferences(@Nullable Bundle savedInstanceState, String rootKey) {
@@ -247,6 +250,10 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
       dialog.getWindow().setBackgroundDrawable(new InsetDrawable(bg, (int) (16 * dp)));
     }
 
+    // the dialog theme's textColorPrimary is white - recolour the message body to the accent
+    TextView msgTv = dialog.findViewById(android.R.id.message);
+    if (msgTv != null) msgTv.setTextColor(accent);
+
     int[] which = {
       AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL
     };
@@ -356,16 +363,53 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
         new AlertDialog.Builder(ctx)
             .setTitle(R.string.eim_dialog_title)
             .setView(scroll)
-            .setPositiveButton(
-                R.string.eim_export, (d, w) -> onEximportExport(selectedCats(catBoxes)))
-            .setNegativeButton(
-                R.string.eim_import, (d, w) -> onEximportImport(selectedCats(catBoxes)))
+            .setPositiveButton(R.string.eim_export, null)
+            .setNegativeButton(R.string.eim_import, null)
             .setNeutralButton(android.R.string.cancel, null)
             .setOnDismissListener(
                 d -> {
                   eimFolderTv = null;
                   eimStatusTv = null;
+                  eximDialog = null;
                 })
+            .show();
+    styleEximDialog(dialog);
+    eximDialog = dialog;
+    // Export/Import must NOT auto-dismiss the panel: failures leave it open, and on success the
+    // whole chain (info dialog -> panel -> UI page) is closed by closeEximportChain().
+    Button exportBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+    if (exportBtn != null) {
+      exportBtn.setOnClickListener(v -> onEximportExport(selectedCats(catBoxes)));
+    }
+    Button importBtn = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+    if (importBtn != null) {
+      importBtn.setOnClickListener(v -> onEximportImport(selectedCats(catBoxes)));
+    }
+  }
+
+  /** Closes the info dialog's underlying chain: the Export/Import panel, then the UI page. */
+  private void closeEximportChain() {
+    AlertDialog dialog = eximDialog;
+    eximDialog = null;
+    if (dialog != null) {
+      try {
+        dialog.dismiss();
+      } catch (Exception ignored) {
+      }
+    }
+    if (getActivity() != null) getActivity().finish();
+  }
+
+  /** Black-and-accent OK dialog after a successful export; OK tears down the whole chain. */
+  private void showEximportExportDone(String name) {
+    Context ctx = getContext();
+    if (ctx == null) return;
+    AlertDialog dialog =
+        new AlertDialog.Builder(ctx)
+            .setTitle(R.string.eim_export_done_title)
+            .setMessage(getString(R.string.eim_export_ok, name))
+            .setCancelable(false)
+            .setPositiveButton(android.R.string.ok, (d, w) -> closeEximportChain())
             .show();
     styleEximDialog(dialog);
   }
@@ -421,6 +465,29 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     refreshEximportRow();
   }
 
+  /** Modal progress while an export/import runs (account backups can take a while). */
+  private void showEximProgress() {
+    dismissEximProgress();
+    ProgressDialog dialog = new ProgressDialog(requireActivity());
+    dialog.setMessage(getString(R.string.one_moment));
+    dialog.setCanceledOnTouchOutside(false);
+    dialog.setCancelable(false);
+    dialog.show();
+    styleEximDialog(dialog); // accent border (the dialog theme would render it teal)
+    eimProgressDialog = dialog;
+  }
+
+  private void dismissEximProgress() {
+    ProgressDialog dialog = eimProgressDialog;
+    eimProgressDialog = null;
+    if (dialog != null) {
+      try {
+        dialog.dismiss();
+      } catch (Exception ignored) {
+      }
+    }
+  }
+
   private void onEximportExport(List<ShiroikumaExport.Cat> cats) {
     Context ctx = getContext();
     if (ctx == null) return;
@@ -430,80 +497,79 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     }
     Context app = ctx.getApplicationContext();
     if (ShiroikumaExport.getExportDir(app) != null) {
-      Toast.makeText(ctx, R.string.eim_exporting, Toast.LENGTH_SHORT).show();
+      showEximProgress();
       Util.runOnAnyBackgroundThread(
           () -> {
+            DocumentFile file = null;
             try {
-              byte[] bytes = ShiroikumaExport.export(app, cats);
               DocumentFile dir = ShiroikumaExport.getExportDir(app);
               String name = ShiroikumaExport.exportFileName();
-              DocumentFile file =
-                  dir != null ? dir.createFile("application/zip", name) : null;
+              file = dir != null ? dir.createFile("application/zip", name) : null;
               if (file == null) throw new IllegalStateException("could not create " + name);
               try (OutputStream out =
                   app.getContentResolver().openOutputStream(file.getUri())) {
                 if (out == null) throw new IllegalStateException("no stream");
-                out.write(bytes);
+                ShiroikumaExport.export(app, cats, out);
               }
+              String fName = name;
               Util.runOnMain(
                   () -> {
-                    Toast.makeText(app, app.getString(R.string.eim_export_ok, name), Toast.LENGTH_LONG)
-                        .show();
-                    refreshEximportRow();
+                    dismissEximProgress();
+                    showEximportExportDone(fName);
                   });
             } catch (Exception e) {
+              if (file != null) file.delete(); // don't leave a truncated export behind
               Util.runOnMain(
-                  () ->
-                      Toast.makeText(
-                              app,
-                              app.getString(R.string.eim_export_fail, String.valueOf(e.getMessage())),
-                              Toast.LENGTH_LONG)
-                          .show());
+                  () -> {
+                    dismissEximProgress();
+                    Toast.makeText(
+                            app,
+                            app.getString(R.string.eim_export_fail, String.valueOf(e.getMessage())),
+                            Toast.LENGTH_LONG)
+                        .show();
+                  });
             }
           });
     } else {
-      // no directory configured - fall back to a save-as picker
-      try {
-        pendingExportBytes = ShiroikumaExport.export(app, cats);
-        eimSaveAsLauncher.launch(ShiroikumaExport.exportFileName());
-      } catch (Exception e) {
-        Toast.makeText(
-                ctx,
-                getString(R.string.eim_export_fail, String.valueOf(e.getMessage())),
-                Toast.LENGTH_LONG)
-            .show();
-      }
+      // no directory configured - fall back to a save-as picker, export runs once the uri is known
+      pendingExportCats = cats;
+      eimSaveAsLauncher.launch(ShiroikumaExport.exportFileName());
     }
   }
 
   private void writePendingExportTo(Uri uri) {
     Context ctx = getContext();
-    byte[] bytes = pendingExportBytes;
-    pendingExportBytes = null;
-    if (ctx == null || bytes == null) return;
+    List<ShiroikumaExport.Cat> cats = pendingExportCats;
+    pendingExportCats = null;
+    if (ctx == null || cats == null) return;
     Context app = ctx.getApplicationContext();
+    showEximProgress();
     Util.runOnAnyBackgroundThread(
         () -> {
           try {
             try (OutputStream out = app.getContentResolver().openOutputStream(uri)) {
               if (out == null) throw new IllegalStateException("no stream");
-              out.write(bytes);
+              ShiroikumaExport.export(app, cats, out);
             }
             Util.runOnMain(
-                () ->
-                    Toast.makeText(
-                            app,
-                            app.getString(R.string.eim_export_ok, String.valueOf(uri.getLastPathSegment())),
-                            Toast.LENGTH_LONG)
-                        .show());
+                () -> {
+                  dismissEximProgress();
+                  showEximportExportDone(String.valueOf(uri.getLastPathSegment()));
+                });
           } catch (Exception e) {
+            try {
+              android.provider.DocumentsContract.deleteDocument(app.getContentResolver(), uri);
+            } catch (Exception ignored) {
+            }
             Util.runOnMain(
-                () ->
-                    Toast.makeText(
-                            app,
-                            app.getString(R.string.eim_export_fail, String.valueOf(e.getMessage())),
-                            Toast.LENGTH_LONG)
-                        .show());
+                () -> {
+                  dismissEximProgress();
+                  Toast.makeText(
+                          app,
+                          app.getString(R.string.eim_export_fail, String.valueOf(e.getMessage())),
+                          Toast.LENGTH_LONG)
+                      .show();
+                });
           }
         });
   }
@@ -525,34 +591,41 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     pendingImportCats = null;
     if (ctx == null || cats == null) return;
     Context app = ctx.getApplicationContext();
-    Toast.makeText(ctx, R.string.eim_importing, Toast.LENGTH_SHORT).show();
+    showEximProgress();
     Util.runOnAnyBackgroundThread(
         () -> {
           String summary = null;
           String error = null;
+          // copy to a temp file so the zip is random-access and account tars stream from disk
+          File tmp = null;
           try {
-            byte[] bytes;
-            try (InputStream in = app.getContentResolver().openInputStream(uri)) {
+            tmp = File.createTempFile("shiroikuma-eximport", ".zip", app.getCacheDir());
+            try (InputStream in = app.getContentResolver().openInputStream(uri);
+                java.io.OutputStream out = new java.io.FileOutputStream(tmp)) {
               if (in == null) throw new IllegalStateException("no stream");
-              java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
-              byte[] buf = new byte[8192];
+              byte[] buf = new byte[65536];
               int n;
-              while ((n = in.read(buf)) > 0) bos.write(buf, 0, n);
-              bytes = bos.toByteArray();
+              while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
             }
-            if (ShiroikumaExport.categoriesIn(bytes).isEmpty()) {
-              error = app.getString(R.string.eim_import_none);
-            } else {
-              summary = ShiroikumaExport.importData(app, bytes, cats);
-              if (summary == null) error = app.getString(R.string.eim_import_none);
+            try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(tmp)) {
+              if (ShiroikumaExport.categoriesIn(zip).isEmpty()) {
+                error = app.getString(R.string.eim_import_none);
+              } else {
+                summary = ShiroikumaExport.importData(app, zip, cats);
+                if (summary == null) error = app.getString(R.string.eim_import_none);
+              }
             }
           } catch (Exception e) {
             error = String.valueOf(e.getMessage());
+          } finally {
+            if (tmp != null) //noinspection ResultOfMethodCallIgnored
+              tmp.delete();
           }
           String fSummary = summary;
           String fError = error;
           Util.runOnMain(
               () -> {
+                dismissEximProgress();
                 if (fSummary != null) {
                   showEximportResult(fSummary);
                 } else {
@@ -573,7 +646,7 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
             .setMessage(getString(R.string.eim_import_done_body, summary))
             .setCancelable(false)
             .setPositiveButton(R.string.eim_restart_now, (d, w) -> restartApp())
-            .setNegativeButton(R.string.eim_restart_later, null)
+            .setNegativeButton(R.string.eim_restart_later, (d, w) -> closeEximportChain())
             .show();
     styleEximDialog(dialog);
   }
