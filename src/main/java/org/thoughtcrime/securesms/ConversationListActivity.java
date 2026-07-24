@@ -32,6 +32,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -50,6 +51,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.ActionMenuView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.view.MenuCompat;
@@ -81,6 +83,7 @@ import org.thoughtcrime.securesms.search.SearchFragment;
 import org.thoughtcrime.securesms.util.DynamicNoActionBarTheme;
 import org.thoughtcrime.securesms.util.DynamicTheme;
 import org.thoughtcrime.securesms.util.Prefs;
+import org.thoughtcrime.securesms.util.ResUtil;
 import org.thoughtcrime.securesms.util.SaveAttachmentTask;
 import org.thoughtcrime.securesms.util.ScreenLockUtil;
 import org.thoughtcrime.securesms.util.SendRelayedMessageUtil;
@@ -479,8 +482,45 @@ public class ConversationListActivity extends PassphraseRequiredActionBarActivit
       MenuCompat.setGroupDividerEnabled(menu, true);
     }
 
+    // shiroikuma fork: action-bar menu icons follow the accent (drawables are hard-tinted white).
+    int accent = ResUtil.getColor(this, R.attr.colorAccent);
+    for (int i = 0; i < menu.size(); i++) {
+      Drawable icon = menu.getItem(i).getIcon();
+      if (icon != null) {
+        icon = icon.mutate();
+        icon.setTint(accent);
+        menu.getItem(i).setIcon(icon);
+      }
+    }
+    installOverflowLongClickListener();
+
     super.onPrepareOptionsMenu(menu);
     return true;
+  }
+
+  // shiroikuma fork: long-press on the toolbar overflow (three-dot) button jumps straight to the
+  // "白い熊 ArcaneChat UI" page. The overflow button only exists after the menu is laid out, hence
+  // the post(); it is the only plain ImageView child of the ActionMenuView (real menu items are
+  // ActionMenuItemViews, which are TextView-based).
+  private void installOverflowLongClickListener() {
+    Toolbar toolbar = findViewById(R.id.toolbar);
+    if (toolbar == null) return;
+    toolbar.post(() -> {
+      for (int i = 0; i < toolbar.getChildCount(); i++) {
+        View child = toolbar.getChildAt(i);
+        if (!(child instanceof ActionMenuView)) continue;
+        ActionMenuView menuView = (ActionMenuView) child;
+        for (int j = 0; j < menuView.getChildCount(); j++) {
+          View button = menuView.getChildAt(j);
+          if (button instanceof ImageView) {
+            button.setOnLongClickListener(v -> {
+              startActivity(new Intent(this, ShiroikumaUiActivity.class));
+              return true;
+            });
+          }
+        }
+      }
+    });
   }
 
   private void initializeSearchListener() {

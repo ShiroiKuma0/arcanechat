@@ -42,7 +42,10 @@
         <item name="popupTheme">@style/ThemeOverlay.AppCompat.Dark</item>
         <item name="titleTextStyle">@style/TextSecure.TitleTextStyle</item>
         <item name="subtitleTextStyle">@style/TextSecure.SubtitleTextStyle</item>
-        <item name="android:textColorSecondary">@color/white</item>
+        <!-- shiroikuma fork: toolbar icons (overflow, nav) follow the accent; this style is
+             also applied as the toolbar android:theme, where these attrs drive icon tint. -->
+        <item name="android:textColorSecondary">?attr/colorAccent</item>
+        <item name="colorControlNormal">?attr/colorAccent</item>
     </style>
 
     <style
@@ -78,7 +81,8 @@
     <style
         name="TextSecure.TitleTextStyle"
         parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
-        <item name="android:textColor">@color/white</item>
+        <!-- shiroikuma fork: toolbar title/subtitle track the accent (default yellow). -->
+        <item name="android:textColor">?attr/colorAccent</item>
         <item name="android:textColorHint">#BFffffff</item>
         <item name="android:textSize">20dp</item>
     </style>
@@ -86,7 +90,7 @@
     <style
         name="TextSecure.SubtitleTextStyle"
         parent="TextAppearance.AppCompat.Widget.ActionBar.Subtitle">
-        <item name="android:textColor">#BFffffff</item>
+        <item name="android:textColor">?attr/colorAccent</item>
     </style>
 
 
