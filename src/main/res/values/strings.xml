@@ -896,7 +896,7 @@
     <!-- shiroikuma fork: Export/Import of all app settings (Kōjiki-style, top of the UI page) -->
     <string name="pref_ui_section_eximport">Export / Import</string>
     <string name="eim_row_title">Export / Import</string>
-    <string name="eim_row_summary">Export or import every setting — colours, fonts, protected contacts, app settings — by category.</string>
+    <string name="eim_row_summary">Export or import everything — accounts, colours, fonts, protected contacts, app settings — by category.</string>
     <string name="eim_dialog_title">Export / Import — 白い熊 ArcaneChat</string>
     <string name="eim_dialog_desc">Save or load every setting as selectable categories.</string>
     <string name="eim_dir_caption">Export directory (tap to choose)</string>
@@ -905,6 +905,7 @@
     <string name="eim_warn_nodir">No directory set yet — pick one to enable one-tap export.</string>
     <string name="eim_warn_none">No export in this directory yet.</string>
     <string name="eim_select_all">Select all</string>
+    <string name="eim_cat_accounts">Accounts (profiles · chats · messages)</string>
     <string name="eim_cat_ui">UI customizations (colours · fonts · accent · chat list)</string>
     <string name="eim_cat_protected">Protected contacts</string>
     <string name="eim_cat_app">App settings (everything else)</string>
@@ -917,6 +918,9 @@
     <string name="eim_import_fail">Import failed: %1$s</string>
     <string name="eim_import_none">No 白い熊 ArcaneChat export found in that file.</string>
     <string name="eim_none_selected">Select at least one category.</string>
+    <string name="eim_accounts_result">%1$d imported · %2$d already present</string>
+    <string name="eim_accounts_failed">" · %1$d failed"</string>
+    <string name="eim_export_done_title">✓ Export complete</string>
     <string name="eim_import_done_title">✓ Import complete</string>
     <string name="eim_import_done_body">Restored:\n\n%1$s\n\nRestart to apply everything.</string>
     <string name="eim_restart_now">Restart now</string>
