@@ -888,6 +888,34 @@
     <string name="pref_reset_ui_summary">Restore every 白い熊 UI colour, font, accent and chat-list style</string>
     <string name="pref_reset_ui_confirm_title">Reset 白い熊 UI?</string>
     <string name="pref_reset_ui_confirm_message">This restores every colour, font, accent and chat-list style to its default. Your added font files are kept.</string>
+    <!-- shiroikuma fork: Export/Import of all app settings (Kōjiki-style, top of the UI page) -->
+    <string name="pref_ui_section_eximport">Export / Import</string>
+    <string name="eim_row_title">Export / Import</string>
+    <string name="eim_row_summary">Export or import every setting — colours, fonts, protected contacts, app settings — by category.</string>
+    <string name="eim_dialog_title">Export / Import — 白い熊 ArcaneChat</string>
+    <string name="eim_dialog_desc">Save or load every setting as selectable categories.</string>
+    <string name="eim_dir_caption">Export directory (tap to choose)</string>
+    <string name="eim_dir_unset">Not set — tap to choose a directory</string>
+    <string name="eim_last_export">Last export: %1$s</string>
+    <string name="eim_warn_nodir">No directory set yet — pick one to enable one-tap export.</string>
+    <string name="eim_warn_none">No export in this directory yet.</string>
+    <string name="eim_select_all">Select all</string>
+    <string name="eim_cat_ui">UI customizations (colours · fonts · accent · chat list)</string>
+    <string name="eim_cat_protected">Protected contacts</string>
+    <string name="eim_cat_app">App settings (everything else)</string>
+    <string name="eim_export">Export</string>
+    <string name="eim_import">Import</string>
+    <string name="eim_exporting">Exporting…</string>
+    <string name="eim_importing">Importing…</string>
+    <string name="eim_export_ok">Exported: %1$s</string>
+    <string name="eim_export_fail">Export failed: %1$s</string>
+    <string name="eim_import_fail">Import failed: %1$s</string>
+    <string name="eim_import_none">No 白い熊 ArcaneChat export found in that file.</string>
+    <string name="eim_none_selected">Select at least one category.</string>
+    <string name="eim_import_done_title">✓ Import complete</string>
+    <string name="eim_import_done_body">Restored:\n\n%1$s\n\nRestart to apply everything.</string>
+    <string name="eim_restart_now">Restart now</string>
+    <string name="eim_restart_later">Later</string>
     <string name="pref_background_btn_default">Use Default Image</string>
     <string name="pref_background_btn_gallery">Select From Gallery</string>
     <!-- deprecated -->

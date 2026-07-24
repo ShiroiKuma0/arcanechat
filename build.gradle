@@ -42,9 +42,12 @@ android {
         // NB: upstream's per-ABI override already does versionCode*10+abi (see applicationVariants
         // below), and the upstream code is already 8 digits, so the other forks' "*10000 + N"
         // would overflow Android's ~2.1e9 ceiling - here we add N to the base instead.
-        // On upstream rebase: reset to "<new upstream>+1" / <new upstream code> + 1.
-        versionCode 30000750
-        versionName "2.56.0+1"
+        // On upstream rebase: reset to "<new upstream>+1" / <new upstream code> + 1 - UNLESS the
+        // resulting code would be <= the last shipped one (upgrades must stay monotonic); then
+        // start the tail at the first N that exceeds it. 2.56.0 base is 30000749 but 2.53.0+8
+        // shipped as 30000754, so this line starts at +6 = 30000755.
+        versionCode 30000755
+        versionName "2.56.0+6"
 
         applicationId "chat.delta.lite"
         multiDexEnabled true
@@ -283,6 +286,7 @@ dependencies {
         exclude group: 'androidx.lifecycle', module:'lifecycle-viewmodel-ktx'
     }
     implementation 'androidx.legacy:legacy-preference-v14:1.0.0'
+    implementation 'androidx.documentfile:documentfile:1.0.1' // shiroikuma fork: SAF export dir
     implementation 'androidx.exifinterface:exifinterface:1.4.1'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-common-java8:2.6.2'
