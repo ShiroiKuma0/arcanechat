@@ -280,6 +280,7 @@ dependencies {
         exclude group: 'androidx.lifecycle', module:'lifecycle-viewmodel'
         exclude group: 'androidx.lifecycle', module:'lifecycle-viewmodel-ktx'
     }
+    implementation 'androidx.documentfile:documentfile:1.0.1' // shiroikuma fork: SAF export dir
     implementation 'androidx.exifinterface:exifinterface:1.4.1'
     implementation 'androidx.lifecycle:lifecycle-common-java8:2.6.2'
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.6.2'
