@@ -6,11 +6,11 @@
 
 **A fully re-themeable ArcaneChat — every colour, font, and surface yours, plus automation hooks no stock messenger has.**
 
-A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, accent presets, selectable chat-list styles, full settings export/import, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
+A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, accent presets, selectable chat-list styles, full export/import of **accounts and every setting**, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
 
 Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-**📥 Latest release: [`2.56.0+6`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
+**📥 Latest release: [`2.56.0+9`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
 </div>
 
@@ -20,9 +20,9 @@ Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanecha
 
 A dedicated **白い熊 ArcaneChat UI** settings page (reachable from the chat-list menu, Settings, or a **long-press on the toolbar's ⋮ button**) controls the app's whole look: message text, bubble fill, and bubble border — each split into **incoming and outgoing** — conversation background, chat-list title / preview / date, and the new-chat button, all picked with a live RGB/hex colour picker. Defaults reproduce the fork's signature **yellow-on-black** palette; one **Reset** restores it.
 
-## 💾 Export / Import every setting
+## 💾 Export / Import everything — accounts included
 
-One tap saves **every setting** — UI customizations, protected contacts, and all app settings — as selectable categories into a zip in a folder you choose; the page shows the **latest export** at a glance every time it opens. Import merges per key (never wipes), so exports travel safely across app versions.
+One tap saves **your accounts and every setting** — full per-account backups (profiles, chats, messages), UI customizations, protected contacts, and all app settings — as selectable categories into a single zip in a folder you choose; the page shows the **latest export** at a glance every time it opens. Import merges (never wipes): settings apply per key, and accounts already on the device are skipped, so exports travel safely across installs and app versions.
 
 ## 🔤 Fonts everywhere — including your own files
 
