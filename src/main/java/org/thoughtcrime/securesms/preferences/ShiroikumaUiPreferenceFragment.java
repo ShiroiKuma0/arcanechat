@@ -4,25 +4,44 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.components.ColorPickerDialog;
 import org.thoughtcrime.securesms.components.FontPickerDialog;
 import org.thoughtcrime.securesms.util.FontUtil;
 import org.thoughtcrime.securesms.util.Prefs;
+import org.thoughtcrime.securesms.util.ResUtil;
+import org.thoughtcrime.securesms.util.ShiroikumaExport;
+import org.thoughtcrime.securesms.util.Util;
 
 /**
  * shiroikuma fork (Step 10): the consolidated "白い熊 ArcaneChat UI" page. Holds every customization
@@ -56,6 +75,32 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
           uri -> {
             if (uri != null) onFontPicked(uri);
           });
+
+  // shiroikuma fork: Export/Import (Kōjiki-style). SAF folder picker for the export directory,
+  // save-as fallback when no directory is set, and the import file picker.
+  private static final int EIM_WARN_COLOR = 0xFFFF5252;
+  private final ActivityResultLauncher<Uri> eimDirPickerLauncher =
+      registerForActivityResult(
+          new ActivityResultContracts.OpenDocumentTree(),
+          uri -> {
+            if (uri != null) onEximportDirPicked(uri);
+          });
+  private final ActivityResultLauncher<String> eimSaveAsLauncher =
+      registerForActivityResult(
+          new ActivityResultContracts.CreateDocument("application/zip"),
+          uri -> {
+            if (uri != null) writePendingExportTo(uri);
+          });
+  private final ActivityResultLauncher<String[]> eimImportLauncher =
+      registerForActivityResult(
+          new ActivityResultContracts.OpenDocument(),
+          uri -> {
+            if (uri != null) onEximportFilePicked(uri);
+          });
+  private byte[] pendingExportBytes;
+  private List<ShiroikumaExport.Cat> pendingImportCats;
+  @Nullable private TextView eimFolderTv;
+  @Nullable private TextView eimStatusTv;
 
   @Override
   public void onCreatePreferences(@Nullable Bundle savedInstanceState, String rootKey) {
@@ -125,24 +170,422 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
           });
     }
 
+    Preference eximportPref = findPreference("pref_eximport");
+    if (eximportPref != null) {
+      eximportPref.setOnPreferenceClickListener(
+          p -> {
+            showExportImportDialog();
+            return true;
+          });
+    }
+
     Preference resetPref = findPreference("pref_reset_ui");
     if (resetPref != null) {
       resetPref.setOnPreferenceClickListener(
           p -> {
-            new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.pref_reset_ui_confirm_title)
-                .setMessage(R.string.pref_reset_ui_confirm_message)
-                .setPositiveButton(
-                    android.R.string.ok,
-                    (d, w) -> {
-                      Prefs.resetShiroikumaUi(requireContext());
-                      requireActivity().recreate();
-                    })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
+            AlertDialog dialog =
+                new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.pref_reset_ui_confirm_title)
+                    .setMessage(R.string.pref_reset_ui_confirm_message)
+                    .setPositiveButton(
+                        android.R.string.ok,
+                        (d, w) -> {
+                          Prefs.resetShiroikumaUi(requireContext());
+                          requireActivity().recreate();
+                        })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            styleEximDialog(dialog);
             return true;
           });
     }
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    refreshEximportRow();
+  }
+
+  // --- Export/Import (Kōjiki-style) ---------------------------------------------------------
+
+  /** Queries the export directory for the latest export and mirrors it in the row summary. */
+  private void refreshEximportRow() {
+    Context ctx = getContext();
+    if (ctx == null) return;
+    Context app = ctx.getApplicationContext();
+    Util.runOnAnyBackgroundThread(
+        () -> {
+          String status = ShiroikumaExport.lastExportStatus(app);
+          Util.runOnMain(
+              () -> {
+                if (!isAdded()) return;
+                Preference p = findPreference("pref_eximport");
+                if (p != null) {
+                  p.setSummary(getString(R.string.eim_row_summary) + "\n" + status);
+                }
+              });
+        });
+  }
+
+  /**
+   * The dialog theme (Theme.AppCompat.Dialog.Alert) redefines colorAccent to the Material default
+   * teal, so ?attr-based window borders come out wrong inside dialogs. Restyle in code with the
+   * ACTIVITY-resolved accent: black rounded window with an accent border, and pill buttons with a
+   * round accent border. Call after show() — the buttons only exist then.
+   */
+  private void styleEximDialog(AlertDialog dialog) {
+    Context ctx = requireContext();
+    int accent = ResUtil.getColor(ctx, R.attr.colorAccent);
+    float dp = getResources().getDisplayMetrics().density;
+
+    if (dialog.getWindow() != null) {
+      GradientDrawable bg = new GradientDrawable();
+      bg.setColor(0xFF000000);
+      bg.setCornerRadius(8 * dp);
+      bg.setStroke((int) (2 * dp), accent);
+      dialog.getWindow().setBackgroundDrawable(new InsetDrawable(bg, (int) (16 * dp)));
+    }
+
+    int[] which = {
+      AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL
+    };
+    for (int w : which) {
+      Button b = dialog.getButton(w);
+      if (b == null) continue;
+      GradientDrawable pill = new GradientDrawable();
+      pill.setColor(0xFF000000);
+      pill.setCornerRadius(50 * dp);
+      pill.setStroke((int) (1.5f * dp), accent);
+      RippleDrawable ripple =
+          new RippleDrawable(
+              ColorStateList.valueOf((accent & 0x00FFFFFF) | 0x33000000), pill, null);
+      b.setBackground(ripple);
+      b.setTextColor(accent);
+      b.setPadding((int) (20 * dp), (int) (6 * dp), (int) (20 * dp), (int) (6 * dp));
+      ViewGroup.LayoutParams lp = b.getLayoutParams();
+      if (lp instanceof ViewGroup.MarginLayoutParams) {
+        ((ViewGroup.MarginLayoutParams) lp).setMarginStart((int) (8 * dp));
+        b.setLayoutParams(lp);
+      }
+    }
+  }
+
+  private GradientDrawable eimBorder(int accent) {
+    GradientDrawable d = new GradientDrawable();
+    d.setColor(0xFF000000);
+    d.setCornerRadius(8 * getResources().getDisplayMetrics().density);
+    d.setStroke((int) (1.5f * getResources().getDisplayMetrics().density), accent);
+    return d;
+  }
+
+  private void showExportImportDialog() {
+    Context ctx = requireContext();
+    int accent = ResUtil.getColor(ctx, R.attr.colorAccent);
+    int dim = (accent & 0x00FFFFFF) | 0xC8000000;
+    float dp = getResources().getDisplayMetrics().density;
+    int pad = (int) (20 * dp);
+
+    LinearLayout root = new LinearLayout(ctx);
+    root.setOrientation(LinearLayout.VERTICAL);
+    root.setPadding(pad, (int) (12 * dp), pad, 0);
+
+    TextView desc = new TextView(ctx);
+    desc.setText(R.string.eim_dialog_desc);
+    desc.setTextColor(dim);
+    desc.setTextSize(13);
+    root.addView(desc);
+
+    // export-directory box: caption + current folder, tap to (re)choose
+    LinearLayout dirBox = new LinearLayout(ctx);
+    dirBox.setOrientation(LinearLayout.VERTICAL);
+    int boxPad = (int) (12 * dp);
+    dirBox.setPadding(boxPad, boxPad, boxPad, boxPad);
+    dirBox.setBackground(eimBorder(accent));
+    LinearLayout.LayoutParams dirLp =
+        new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    dirLp.topMargin = (int) (12 * dp);
+    TextView dirCaption = new TextView(ctx);
+    dirCaption.setText(R.string.eim_dir_caption);
+    dirCaption.setTextColor(dim);
+    dirCaption.setTextSize(12);
+    dirBox.addView(dirCaption);
+    eimFolderTv = new TextView(ctx);
+    eimFolderTv.setTextSize(15);
+    dirBox.addView(eimFolderTv);
+    dirBox.setOnClickListener(v -> eimDirPickerLauncher.launch(ShiroikumaExport.getDirUri(ctx)));
+    root.addView(dirBox, dirLp);
+
+    eimStatusTv = new TextView(ctx);
+    eimStatusTv.setTextSize(13);
+    LinearLayout.LayoutParams statusLp =
+        new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    statusLp.topMargin = (int) (8 * dp);
+    statusLp.bottomMargin = (int) (10 * dp);
+    root.addView(eimStatusTv, statusLp);
+    refreshEximportDialogStatus();
+
+    // select-all + one checkbox per category, all ticked by default (Kōjiki flow)
+    List<CheckBox> catBoxes = new ArrayList<>();
+    CheckBox selectAll = new CheckBox(ctx);
+    selectAll.setText(R.string.eim_select_all);
+    selectAll.setTextColor(accent);
+    selectAll.setTypeface(null, Typeface.BOLD);
+    selectAll.setChecked(true);
+    root.addView(selectAll);
+    for (ShiroikumaExport.Cat cat : ShiroikumaExport.Cat.values()) {
+      CheckBox cb = new CheckBox(ctx);
+      cb.setText(cat.labelRes);
+      cb.setTextColor(accent);
+      cb.setChecked(true);
+      cb.setTag(cat);
+      catBoxes.add(cb);
+      root.addView(cb);
+    }
+    selectAll.setOnCheckedChangeListener(
+        (btn, checked) -> {
+          for (CheckBox cb : catBoxes) cb.setChecked(checked);
+        });
+
+    ScrollView scroll = new ScrollView(ctx);
+    scroll.addView(root);
+
+    AlertDialog dialog =
+        new AlertDialog.Builder(ctx)
+            .setTitle(R.string.eim_dialog_title)
+            .setView(scroll)
+            .setPositiveButton(
+                R.string.eim_export, (d, w) -> onEximportExport(selectedCats(catBoxes)))
+            .setNegativeButton(
+                R.string.eim_import, (d, w) -> onEximportImport(selectedCats(catBoxes)))
+            .setNeutralButton(android.R.string.cancel, null)
+            .setOnDismissListener(
+                d -> {
+                  eimFolderTv = null;
+                  eimStatusTv = null;
+                })
+            .show();
+    styleEximDialog(dialog);
+  }
+
+  private List<ShiroikumaExport.Cat> selectedCats(List<CheckBox> boxes) {
+    List<ShiroikumaExport.Cat> out = new ArrayList<>();
+    for (CheckBox cb : boxes) {
+      if (cb.isChecked()) out.add((ShiroikumaExport.Cat) cb.getTag());
+    }
+    return out;
+  }
+
+  /** Updates the folder-name and last-export lines inside the open dialog. */
+  private void refreshEximportDialogStatus() {
+    Context ctx = getContext();
+    if (ctx == null || eimFolderTv == null || eimStatusTv == null) return;
+    int accent = ResUtil.getColor(ctx, R.attr.colorAccent);
+    DocumentFile dir = ShiroikumaExport.getExportDir(ctx);
+    if (dir != null) {
+      String name = dir.getName();
+      Uri uri = ShiroikumaExport.getDirUri(ctx);
+      eimFolderTv.setText(name != null ? name : (uri != null ? uri.getLastPathSegment() : ""));
+      eimFolderTv.setTextColor(accent);
+    } else {
+      eimFolderTv.setText(R.string.eim_dir_unset);
+      eimFolderTv.setTextColor(EIM_WARN_COLOR);
+    }
+    TextView statusTv = eimStatusTv;
+    Context app = ctx.getApplicationContext();
+    Util.runOnAnyBackgroundThread(
+        () -> {
+          String status = ShiroikumaExport.lastExportStatus(app);
+          boolean warn = ShiroikumaExport.latestExport(app) == null;
+          Util.runOnMain(
+              () -> {
+                statusTv.setText(status);
+                statusTv.setTextColor(warn ? EIM_WARN_COLOR : accent);
+              });
+        });
+  }
+
+  private void onEximportDirPicked(Uri uri) {
+    Context ctx = getContext();
+    if (ctx == null) return;
+    try {
+      ctx.getContentResolver()
+          .takePersistableUriPermission(
+              uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    } catch (Exception ignored) {
+    }
+    ShiroikumaExport.setDirUri(ctx, uri);
+    refreshEximportDialogStatus();
+    refreshEximportRow();
+  }
+
+  private void onEximportExport(List<ShiroikumaExport.Cat> cats) {
+    Context ctx = getContext();
+    if (ctx == null) return;
+    if (cats.isEmpty()) {
+      Toast.makeText(ctx, R.string.eim_none_selected, Toast.LENGTH_SHORT).show();
+      return;
+    }
+    Context app = ctx.getApplicationContext();
+    if (ShiroikumaExport.getExportDir(app) != null) {
+      Toast.makeText(ctx, R.string.eim_exporting, Toast.LENGTH_SHORT).show();
+      Util.runOnAnyBackgroundThread(
+          () -> {
+            try {
+              byte[] bytes = ShiroikumaExport.export(app, cats);
+              DocumentFile dir = ShiroikumaExport.getExportDir(app);
+              String name = ShiroikumaExport.exportFileName();
+              DocumentFile file =
+                  dir != null ? dir.createFile("application/zip", name) : null;
+              if (file == null) throw new IllegalStateException("could not create " + name);
+              try (OutputStream out =
+                  app.getContentResolver().openOutputStream(file.getUri())) {
+                if (out == null) throw new IllegalStateException("no stream");
+                out.write(bytes);
+              }
+              Util.runOnMain(
+                  () -> {
+                    Toast.makeText(app, app.getString(R.string.eim_export_ok, name), Toast.LENGTH_LONG)
+                        .show();
+                    refreshEximportRow();
+                  });
+            } catch (Exception e) {
+              Util.runOnMain(
+                  () ->
+                      Toast.makeText(
+                              app,
+                              app.getString(R.string.eim_export_fail, String.valueOf(e.getMessage())),
+                              Toast.LENGTH_LONG)
+                          .show());
+            }
+          });
+    } else {
+      // no directory configured - fall back to a save-as picker
+      try {
+        pendingExportBytes = ShiroikumaExport.export(app, cats);
+        eimSaveAsLauncher.launch(ShiroikumaExport.exportFileName());
+      } catch (Exception e) {
+        Toast.makeText(
+                ctx,
+                getString(R.string.eim_export_fail, String.valueOf(e.getMessage())),
+                Toast.LENGTH_LONG)
+            .show();
+      }
+    }
+  }
+
+  private void writePendingExportTo(Uri uri) {
+    Context ctx = getContext();
+    byte[] bytes = pendingExportBytes;
+    pendingExportBytes = null;
+    if (ctx == null || bytes == null) return;
+    Context app = ctx.getApplicationContext();
+    Util.runOnAnyBackgroundThread(
+        () -> {
+          try {
+            try (OutputStream out = app.getContentResolver().openOutputStream(uri)) {
+              if (out == null) throw new IllegalStateException("no stream");
+              out.write(bytes);
+            }
+            Util.runOnMain(
+                () ->
+                    Toast.makeText(
+                            app,
+                            app.getString(R.string.eim_export_ok, String.valueOf(uri.getLastPathSegment())),
+                            Toast.LENGTH_LONG)
+                        .show());
+          } catch (Exception e) {
+            Util.runOnMain(
+                () ->
+                    Toast.makeText(
+                            app,
+                            app.getString(R.string.eim_export_fail, String.valueOf(e.getMessage())),
+                            Toast.LENGTH_LONG)
+                        .show());
+          }
+        });
+  }
+
+  private void onEximportImport(List<ShiroikumaExport.Cat> cats) {
+    Context ctx = getContext();
+    if (ctx == null) return;
+    if (cats.isEmpty()) {
+      Toast.makeText(ctx, R.string.eim_none_selected, Toast.LENGTH_SHORT).show();
+      return;
+    }
+    pendingImportCats = cats;
+    eimImportLauncher.launch(new String[] {"application/zip", "application/octet-stream", "*/*"});
+  }
+
+  private void onEximportFilePicked(Uri uri) {
+    Context ctx = getContext();
+    List<ShiroikumaExport.Cat> cats = pendingImportCats;
+    pendingImportCats = null;
+    if (ctx == null || cats == null) return;
+    Context app = ctx.getApplicationContext();
+    Toast.makeText(ctx, R.string.eim_importing, Toast.LENGTH_SHORT).show();
+    Util.runOnAnyBackgroundThread(
+        () -> {
+          String summary = null;
+          String error = null;
+          try {
+            byte[] bytes;
+            try (InputStream in = app.getContentResolver().openInputStream(uri)) {
+              if (in == null) throw new IllegalStateException("no stream");
+              java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+              byte[] buf = new byte[8192];
+              int n;
+              while ((n = in.read(buf)) > 0) bos.write(buf, 0, n);
+              bytes = bos.toByteArray();
+            }
+            if (ShiroikumaExport.categoriesIn(bytes).isEmpty()) {
+              error = app.getString(R.string.eim_import_none);
+            } else {
+              summary = ShiroikumaExport.importData(app, bytes, cats);
+              if (summary == null) error = app.getString(R.string.eim_import_none);
+            }
+          } catch (Exception e) {
+            error = String.valueOf(e.getMessage());
+          }
+          String fSummary = summary;
+          String fError = error;
+          Util.runOnMain(
+              () -> {
+                if (fSummary != null) {
+                  showEximportResult(fSummary);
+                } else {
+                  Toast.makeText(
+                          app, app.getString(R.string.eim_import_fail, fError), Toast.LENGTH_LONG)
+                      .show();
+                }
+              });
+        });
+  }
+
+  private void showEximportResult(String summary) {
+    Context ctx = getContext();
+    if (ctx == null) return;
+    AlertDialog dialog =
+        new AlertDialog.Builder(ctx)
+            .setTitle(R.string.eim_import_done_title)
+            .setMessage(getString(R.string.eim_import_done_body, summary))
+            .setCancelable(false)
+            .setPositiveButton(R.string.eim_restart_now, (d, w) -> restartApp())
+            .setNegativeButton(R.string.eim_restart_later, null)
+            .show();
+    styleEximDialog(dialog);
+  }
+
+  private void restartApp() {
+    Context ctx = requireContext().getApplicationContext();
+    Intent launch =
+        ctx.getPackageManager().getLaunchIntentForPackage(ctx.getPackageName());
+    if (launch != null && launch.getComponent() != null) {
+      ctx.startActivity(Intent.makeRestartActivityTask(launch.getComponent()));
+    }
+    Runtime.getRuntime().exit(0);
   }
 
   private boolean hasStoragePermission() {
