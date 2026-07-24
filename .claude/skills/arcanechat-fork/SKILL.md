@@ -30,7 +30,7 @@ The fork model is identical to the user's FairEmail and SimpleX forks: fork on G
 | Android SDK | `/home/shiroikuma/android-sdk` (`ANDROID_HOME` / `ANDROID_SDK_ROOT`) |
 | Android NDK | `27.0.12077973` (the `ndkVersion` in `build.gradle`), at `$ANDROID_HOME/ndk/27.0.12077973` |
 | Rust | rustup; the android target must be on the toolchain pinned by `scripts/rust-toolchain` (was `1.91.1`) |
-| App version scheme | `versionName <upstream>+<N>`, base `versionCode <upstreamCode> + N` (final per-ABI is `×10+abi`); currently `2.53.0+8` / base `30000754`; committed bump per feature (see Versioning) |
+| App version scheme | `versionName <upstream>+<N>`, base `versionCode <upstreamCode> + N` (final per-ABI is `×10+abi`); currently `2.56.0+6` / base `30000755`; committed bump per feature (see Versioning) |
 | APK filename grammar | `shiroikuma-arcanechat_<versionName>_arm64-v8a.apk` (e.g. `shiroikuma-arcanechat_2.49.0+1_arm64-v8a.apk`); version-based, no timestamp |
 
 Apply the `shell-block-formatting` conventions: every command in chat blocks gets a cyan `>>>` echo prefix, stderr is recolored red via the `r()` helper, and expensive steps (native build, Gradle) sit behind a `read -p` pause gate. Use the **ANSI-C-quoted** sed in the helper — `r() { "$@" 2> >(sed $'s/.*/\033[1;31m&\033[0m/' >&2); }` — never the plain-single-quoted form, which GNU sed mangles into tripled lines and raw `33[`.
@@ -142,8 +142,10 @@ The customization commits, in order:
 - `Protected contacts: add GET_PROTECTED_CONTACTS read-back query`
 - `Chat-list toolbar: accent title and icons; long-press overflow opens the UI page`
 - `Export/Import of every setting (Kōjiki-style) + kxkb-style restyle of the UI page`
+- `README: refresh for 2.53.0+8 (settings export/import, kxkb-styled UI page, accented toolbar)`
+- `Step 8 follow-up: drop attach long-click wiring (upstream v2.56.0 removed AttachButtonLongClickListener)`
 
-The stack was rebased onto upstream **`v2.53.0`** on 2026-07-02 (from `v2.49.0`; version line restarted at `2.53.0+4` per the monotonic guard) — the procedure and its banked traps live in the `/upstream-new-version` skill.
+The stack was rebased onto upstream **`v2.56.0`** on 2026-07-24 (from `v2.53.0`; version line restarted at `2.56.0+6` = `30000755` per the monotonic guard — upstream's base `30000749`+1 trailed our shipped `30000754`). Sync notes from that run: upstream's multi-file-attach rework **removed `AttachButtonLongClickListener`**, so the Step 8 attach buttons are click-only now (`Step 8 follow-up` commit); the compose panel gained upstream `elevation`/`outlineProvider` lines that ride alongside our bordered background; `updateReminders()` moved out of `ConversationListFragment.onResume` (our repaint hook stays there alone). The previous rebase was `v2.49.0`→`v2.53.0` on 2026-07-02 (`2.53.0+4`). The procedure and its banked traps live in the `/upstream-new-version` skill.
 
 Versioning **does** bump per feature now (since Step 9) — see "Versioning" below.
 
