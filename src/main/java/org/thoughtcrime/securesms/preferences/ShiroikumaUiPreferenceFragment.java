@@ -35,8 +35,12 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.thoughtcrime.securesms.R;
+import org.thoughtcrime.securesms.automation.AutomationAuth;
+import org.thoughtcrime.securesms.automation.StateExportReceiver;
+import org.thoughtcrime.securesms.components.AutomationTokenPreference;
 import org.thoughtcrime.securesms.components.ColorPickerDialog;
 import org.thoughtcrime.securesms.components.FontPickerDialog;
+import org.thoughtcrime.securesms.components.SwitchPreferenceCompat;
 import org.thoughtcrime.securesms.util.FontUtil;
 import org.thoughtcrime.securesms.util.Prefs;
 import org.thoughtcrime.securesms.util.ResUtil;
@@ -182,6 +186,8 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
           });
     }
 
+    initializeAutomationPrefs();
+
     Preference resetPref = findPreference("pref_reset_ui");
     if (resetPref != null) {
       resetPref.setOnPreferenceClickListener(
@@ -208,6 +214,69 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
   public void onResume() {
     super.onResume();
     refreshEximportRow();
+  }
+
+  // --- automation (保存復元 contract) -------------------------------------------------------
+
+  /**
+   * The two rows below Export/Import: the master switch for {@link StateExportReceiver} (default
+   * OFF) and the token row — tap copies the full token, the right-hand button regenerates it. Both
+   * are {@code persistent="false"} and stored in {@link AutomationAuth}'s own device-local prefs
+   * file, so the token never travels inside an export zip.
+   */
+  private void initializeAutomationPrefs() {
+    SwitchPreferenceCompat switchPref =
+        (SwitchPreferenceCompat) findPreference("pref_automation_enabled");
+    if (switchPref != null) {
+      switchPref.setChecked(AutomationAuth.isEnabled(requireContext()));
+      switchPref.setOnPreferenceChangeListener(
+          (p, value) -> {
+            AutomationAuth.setEnabled(requireContext(), Boolean.TRUE.equals(value));
+            return true;
+          });
+    }
+
+    AutomationTokenPreference tokenPref =
+        (AutomationTokenPreference) findPreference("pref_automation_token");
+    if (tokenPref == null) return;
+    updateAutomationTokenRow(tokenPref);
+    tokenPref.setOnPreferenceClickListener(
+        p -> {
+          Context ctx = getContext();
+          if (ctx == null) return true;
+          Util.writeTextToClipboard(ctx, AutomationAuth.getToken(ctx));
+          Toast.makeText(ctx, R.string.pref_automation_token_copied, Toast.LENGTH_SHORT).show();
+          return true;
+        });
+    tokenPref.setOnRegenerateListener(
+        () -> {
+          Context ctx = getContext();
+          if (ctx == null) return;
+          AlertDialog dialog =
+              new AlertDialog.Builder(ctx)
+                  .setTitle(R.string.pref_automation_regenerate_title)
+                  .setMessage(R.string.pref_automation_regenerate_message)
+                  .setPositiveButton(
+                      R.string.pref_automation_regenerate,
+                      (d, w) -> {
+                        AutomationAuth.regenerateToken(ctx);
+                        updateAutomationTokenRow(tokenPref);
+                        Toast.makeText(ctx, R.string.pref_automation_regenerated, Toast.LENGTH_SHORT)
+                            .show();
+                      })
+                  .setNegativeButton(android.R.string.cancel, null)
+                  .show();
+          styleEximDialog(dialog);
+        });
+  }
+
+  private void updateAutomationTokenRow(AutomationTokenPreference pref) {
+    Context ctx = getContext();
+    if (ctx == null) return;
+    pref.setSummary(
+        AutomationAuth.abbreviate(AutomationAuth.getToken(ctx))
+            + "\n"
+            + getString(R.string.pref_automation_token_summary));
   }
 
   // --- Export/Import (Kōjiki-style) ---------------------------------------------------------
