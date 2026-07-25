@@ -16,6 +16,22 @@
             android:summary="@string/eim_row_summary"
             android:layout="@layout/preference_shiroikuma_indent1"
             android:persistent="false" />
+        <!-- 保存復元 automation contract: the switch gates the exported StateExportReceiver, the
+             token row copies the shared secret 自由作業盤 puts in its intents. Stored in the
+             device-local AutomationAuth prefs file (persistent="false" here), never exported. -->
+        <org.thoughtcrime.securesms.components.SwitchPreferenceCompat
+            android:key="pref_automation_enabled"
+            android:title="@string/pref_automation_enabled"
+            android:summary="@string/pref_automation_enabled_summary"
+            android:layout="@layout/preference_shiroikuma_indent1"
+            android:persistent="false" />
+        <org.thoughtcrime.securesms.components.AutomationTokenPreference
+            android:key="pref_automation_token"
+            android:title="@string/pref_automation_token"
+            android:summary="@string/pref_automation_token_summary"
+            android:layout="@layout/preference_shiroikuma_indent1"
+            android:widgetLayout="@layout/preference_widget_regenerate"
+            android:persistent="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

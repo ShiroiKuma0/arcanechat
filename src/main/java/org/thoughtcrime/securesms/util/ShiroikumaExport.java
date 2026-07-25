@@ -44,13 +44,35 @@ public final class ShiroikumaExport {
 
   public static final String FORMAT = "arcanechat-export";
   public static final int VERSION = 1;
-  public static final String EXPORT_PREFIX = "shiroikuma-arcanechat-";
+
+  /**
+   * Family-wide backup-name convention (白い熊, 2026-07-25): every sister app writes
+   * {@code <english-dash-separated-app-name>_<yyyy-MM-dd_HH-mm-ss>.zip} — no version, no infix, no
+   * suffix — so all apps' backups sort and read uniformly in one directory.
+   */
+  public static final String EXPORT_PREFIX = "shiroikuma-arcanechat_";
+
+  /** Pre-convention name ({@code …-<version>-export_<stamp>.zip}); still recognised on read. */
+  public static final String LEGACY_EXPORT_PREFIX = "shiroikuma-arcanechat-";
 
   /** Device-local prefs holding the export-directory URI; deliberately never exported. */
   public static final String EXIMPORT_PREFS = "shiroikuma_eximport";
   public static final String KEY_DIR_URI = "dir_uri";
 
-  /** Keys that must not travel between installs (device/session-local state). */
+  /**
+   * One export at a time, process-wide: the UI panel and the automation receiver share the temp
+   * directory account tars are staged in, so a second concurrent run would delete the first one's
+   * files. Fails fast rather than queueing, so the caller can report it.
+   */
+  private static final java.util.concurrent.atomic.AtomicBoolean EXPORT_RUNNING =
+      new java.util.concurrent.atomic.AtomicBoolean(false);
+
+  /**
+   * Keys that must not travel between installs (device/session-local state). The export directory
+   * and the automation switch/token live in their own prefs files ({@link #EXIMPORT_PREFS} /
+   * {@code AutomationAuth.PREFS}), which this engine never reads — so the token can never end up
+   * inside a backup zip.
+   */
   private static final Set<String> APP_EXCLUDE = new HashSet<>();
 
   static {
@@ -74,7 +96,67 @@ public final class ShiroikumaExport {
     }
   }
 
+  /**
+   * Progress sink for a long export. 白い熊's rule for the automation contract: report real counts,
+   * never a percentage — {@code text} is the display line, {@code current}/{@code total}/{@code
+   * unit} the structured form of the same numbers.
+   */
+  public interface ProgressListener {
+    void onProgress(@NonNull String text, long current, long total, @NonNull String unit);
+  }
+
+  /**
+   * A configured account, offered to automation as the {@code accounts.<accountId>} sub-option of
+   * the Accounts category so a batch can back up one profile instead of all of them.
+   */
+  public static final class AccountEntry {
+    public final int accountId;
+    public final String label;
+
+    AccountEntry(int accountId, String label) {
+      this.accountId = accountId;
+      this.label = label;
+    }
+
+    /** The id accepted in the automation {@code items} extra. */
+    public String itemId() {
+      return Cat.ACCOUNTS.id + "." + accountId;
+    }
+  }
+
   private ShiroikumaExport() {}
+
+  /** The configured accounts, in core order; unconfigured ones have nothing to back up. */
+  @NonNull
+  public static List<AccountEntry> listAccounts(@NonNull Context context) {
+    List<AccountEntry> out = new ArrayList<>();
+    DcAccounts accounts = DcHelper.getAccounts(context);
+    for (int accountId : accounts.getAll()) {
+      DcContext acc = accounts.getAccount(accountId);
+      if (acc.isConfigured() == 0) continue;
+      out.add(new AccountEntry(accountId, accountLabel(acc, accountId)));
+    }
+    return out;
+  }
+
+  private static String accountLabel(DcContext acc, int accountId) {
+    String addr = acc.getConfig("addr");
+    String name = acc.getConfig("displayname");
+    boolean hasAddr = addr != null && !addr.isEmpty();
+    boolean hasName = name != null && !name.isEmpty();
+    if (hasName && hasAddr && !name.equals(addr)) return name + " (" + addr + ")";
+    if (hasAddr) return addr;
+    if (hasName) return name;
+    return "#" + accountId;
+  }
+
+  /** The category label without its parenthesised detail — for one-line progress text. */
+  @NonNull
+  public static String shortLabel(@NonNull Context context, @NonNull Cat cat) {
+    String label = context.getString(cat.labelRes);
+    int cut = label.indexOf(" (");
+    return cut > 0 ? label.substring(0, cut) : label;
+  }
 
   // --- category membership ------------------------------------------------------------------
 
@@ -107,20 +189,36 @@ public final class ShiroikumaExport {
 
   public static String exportFileName() {
     return EXPORT_PREFIX
-        + BuildConfig.VERSION_NAME
-        + "-export_"
         + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.ROOT).format(new Date())
         + ".zip";
+  }
+
+  /** Everything, every account, no progress — the plain UI-panel export. */
+  public static void export(
+      @NonNull Context context, @NonNull List<Cat> cats, @NonNull OutputStream out)
+      throws Exception {
+    export(context, cats, null, out, null);
   }
 
   /**
    * Streams the export zip for the given categories to {@code out} (account backups can be far too
    * large for an in-memory build). The caller owns the stream and should delete the target file if
    * this throws midway.
+   *
+   * @param accountIds when non-null, only these accounts are included in the Accounts category
+   *     (the {@code accounts.<id>} sub-options); null means every configured account.
+   * @param progress optional sink for real counts while the export runs.
    */
   public static void export(
-      @NonNull Context context, @NonNull List<Cat> cats, @NonNull OutputStream out)
+      @NonNull Context context,
+      @NonNull List<Cat> cats,
+      @Nullable Set<Integer> accountIds,
+      @NonNull OutputStream out,
+      @Nullable ProgressListener progress)
       throws Exception {
+    if (!EXPORT_RUNNING.compareAndSet(false, true)) {
+      throw new IllegalStateException("export already running");
+    }
     try (ZipOutputStream zip = new ZipOutputStream(out)) {
       JSONArray catIds = new JSONArray();
       for (Cat c : cats) catIds.put(c.id);
@@ -129,18 +227,38 @@ public final class ShiroikumaExport {
               .put("format", FORMAT)
               .put("version", VERSION)
               .put("app", context.getPackageName())
+              .put("appVersion", BuildConfig.VERSION_NAME)
               .put("createdTs", System.currentTimeMillis())
               .put("categories", catIds);
       writeEntry(zip, "manifest.json", manifest.toString(2));
 
       SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+      int total = cats.size();
+      int n = 0;
       for (Cat cat : cats) {
+        n++;
+        if (progress != null) {
+          progress.onProgress(
+              context.getString(R.string.eim_progress_category, n, total, shortLabel(context, cat)),
+              n,
+              total,
+              context.getString(R.string.eim_progress_unit_category));
+        }
         if (cat == Cat.ACCOUNTS) {
-          exportAccounts(context, zip);
+          exportAccounts(context, zip, accountIds, progress);
         } else {
           writeEntry(zip, cat.id + ".json", exportPrefs(sp, cat));
         }
       }
+      if (progress != null) {
+        progress.onProgress(
+            context.getString(R.string.eim_progress_done, total),
+            total,
+            total,
+            context.getString(R.string.eim_progress_unit_category));
+      }
+    } finally {
+      EXPORT_RUNNING.set(false);
     }
   }
 
@@ -149,17 +267,34 @@ public final class ShiroikumaExport {
    * (unencrypted, like the in-app backup), plus an {@code accounts.json} index whose presence marks
    * the category in the zip. Unconfigured accounts have nothing to back up and are skipped.
    */
-  private static void exportAccounts(Context context, ZipOutputStream zip) throws Exception {
+  private static void exportAccounts(
+      Context context,
+      ZipOutputStream zip,
+      @Nullable Set<Integer> accountIds,
+      @Nullable ProgressListener progress)
+      throws Exception {
     DcAccounts accounts = DcHelper.getAccounts(context);
     Rpc rpc = DcHelper.getRpc(context);
     File tmpRoot = new File(context.getCacheDir(), "shiroikuma-eximport");
     deleteRecursive(tmpRoot);
     JSONArray index = new JSONArray();
+    List<AccountEntry> selected = new ArrayList<>();
+    for (AccountEntry entry : listAccounts(context)) {
+      if (accountIds == null || accountIds.contains(entry.accountId)) selected.add(entry);
+    }
     try {
       int n = 0;
-      for (int accountId : accounts.getAll()) {
+      for (AccountEntry entry : selected) {
+        int accountId = entry.accountId;
         DcContext acc = accounts.getAccount(accountId);
-        if (acc.isConfigured() == 0) continue;
+        if (progress != null) {
+          progress.onProgress(
+              context.getString(
+                  R.string.eim_progress_account, n + 1, selected.size(), entry.label),
+              n + 1,
+              selected.size(),
+              context.getString(R.string.eim_progress_unit_account));
+        }
         // a per-account empty dir makes the produced tar unambiguous
         File dir = new File(tmpRoot, "acc-" + accountId);
         if (!dir.mkdirs()) throw new IllegalStateException("cannot create " + dir);
@@ -448,7 +583,9 @@ public final class ShiroikumaExport {
       for (DocumentFile f : dir.listFiles()) {
         String name = f.getName();
         if (!f.isFile() || name == null) continue;
-        if (!name.startsWith(EXPORT_PREFIX) || !name.endsWith(".zip")) continue;
+        if (!name.endsWith(".zip")) continue;
+        // the pre-convention name is still recognised, so older backups keep counting as "latest"
+        if (!name.startsWith(EXPORT_PREFIX) && !name.startsWith(LEGACY_EXPORT_PREFIX)) continue;
         if (newest == null || f.lastModified() > newest.lastModified()) newest = f;
       }
       return newest;
