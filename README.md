@@ -6,11 +6,11 @@
 
 **A fully re-themeable ArcaneChat — every colour, font, and surface yours, plus automation hooks no stock messenger has.**
 
-A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, accent presets, selectable chat-list styles, full export/import of **accounts and every setting**, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
+A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, accent presets, selectable chat-list styles, full export/import of **accounts and every setting**, a **token-gated automation export** for one-command backups, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
 
 Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-**📥 Latest release: [`2.56.0+9`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
+**📥 Latest release: [`2.56.0+10`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
 </div>
 
@@ -23,6 +23,10 @@ A dedicated **白い熊 ArcaneChat UI** settings page (reachable from the chat-l
 ## 💾 Export / Import everything — accounts included
 
 One tap saves **your accounts and every setting** — full per-account backups (profiles, chats, messages), UI customizations, protected contacts, and all app settings — as selectable categories into a single zip in a folder you choose; the page shows the **latest export** at a glance every time it opens. Import merges (never wipes): settings apply per key, and accounts already on the device are skipped, so exports travel safely across installs and app versions.
+
+## 🤖 Backups on command — no hands, no UI
+
+An **automation export** switch (off until you turn it on) lets a companion app back this one up as part of a whole-device batch: a token-gated intent runs the very same category export **headlessly** — no window, no taps — writes **one zip** to whatever directory the caller names, and answers with the exact path, byte count, and human size. While it runs it reports **real counts** (`区分 2/4 — Accounts`, `アカウント 1/2 — you@example.org`), never a meaningless percentage. The companion can also ask what this app can export and get back the category list, with **each account offered separately**, so a batch can grab one profile instead of all of them. The shared secret lives in its own device-local store, is compared in constant time, and can never appear inside a backup.
 
 ## 🔤 Fonts everywhere — including your own files
 
