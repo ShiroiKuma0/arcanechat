@@ -925,6 +925,22 @@
     <string name="eim_import_done_body">Restored:\n\n%1$s\n\nRestart to apply everything.</string>
     <string name="eim_restart_now">Restart now</string>
     <string name="eim_restart_later">Later</string>
+    <!-- shiroikuma fork: 保存復元 automation contract — token-gated headless export.
+         Progress text is what 自由作業盤 shows in its notification: real counts, never a percentage. -->
+    <string name="pref_automation_enabled">Automation export</string>
+    <string name="pref_automation_enabled_summary">Let a sister app (白い熊 自由作業盤) trigger this app\'s export through a token-gated intent. Off by default.</string>
+    <string name="pref_automation_token">Automation token</string>
+    <string name="pref_automation_token_summary">Tap to copy the full token · paste it into 自由作業盤「保存復元の設定」</string>
+    <string name="pref_automation_token_copied">Automation token copied to the clipboard</string>
+    <string name="pref_automation_regenerate">Regenerate</string>
+    <string name="pref_automation_regenerate_title">Regenerate the automation token?</string>
+    <string name="pref_automation_regenerate_message">The current token stops working immediately. Every place it has been pasted — 自由作業盤「保存復元の設定 -- [979][01]」 — must be updated with the new one.</string>
+    <string name="pref_automation_regenerated">New automation token generated</string>
+    <string name="eim_progress_unit_category">区分</string>
+    <string name="eim_progress_category">区分 %1$d/%2$d — %3$s</string>
+    <string name="eim_progress_done">区分 %1$d/%1$d — 完了</string>
+    <string name="eim_progress_unit_account">アカウント</string>
+    <string name="eim_progress_account">アカウント %1$d/%2$d — %3$s</string>
     <string name="pref_background_btn_default">Use Default Image</string>
     <string name="pref_background_btn_gallery">Select From Gallery</string>
     <!-- deprecated -->
