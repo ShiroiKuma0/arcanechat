@@ -6,11 +6,11 @@
 
 **A fully re-themeable ArcaneChat — every colour, font, and surface yours, plus automation hooks no stock messenger has.**
 
-A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, accent presets, selectable chat-list styles, full export/import of **accounts and every setting**, a **token-gated automation export** for one-command backups, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
+A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, **configurable delivery ticks**, accent presets, selectable chat-list styles, full export/import of **accounts and every setting**, a **token-gated automation export** for one-command backups, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
 
 Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-**📥 Latest release: [`2.56.0+10`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
+**📥 Latest release: [`2.56.0+13`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
 </div>
 
@@ -19,6 +19,16 @@ Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanecha
 ## 🎨 Every surface, your colours
 
 A dedicated **白い熊 ArcaneChat UI** settings page (reachable from the chat-list menu, Settings, or a **long-press on the toolbar's ⋮ button**) controls the app's whole look: message text, bubble fill, and bubble border — each split into **incoming and outgoing** — conversation background, chat-list title / preview / date, and the new-chat button, all picked with a live RGB/hex colour picker. Defaults reproduce the fork's signature **yellow-on-black** palette; one **Reset** restores it.
+
+The palette is disciplined: black is **`#000000`** on every surface — toolbars, dialogs, the compose bar, date pills, the scroll-to-bottom button — never a near-black that reads greenish next to the yellow, and yellow is **`#FFFF00`**, never amber. Every dialog in the app carries the accent border, including ones deep inside stock ArcaneChat.
+
+## ✅ Delivery ticks you can actually read
+
+The little status marks beside your sent messages are fully yours: **one size** (6–48 dp) for the chat bubbles and the chat list together, and an independent **colour and glyph per state** — Sending, Sent, Received, and Failed — chosen from nine vector glyphs (single / double / triple tick, clock, dot, tick in a circle, up arrow, exclamation, or hidden). Both the settings page and the glyph picker **preview each glyph at your real size and colour**, rendered through the very same code that draws it beside a message, so what you pick is what you get.
+
+The default ladder is built on **shape, not stroke-counting**: a blue clock while the message is still on your phone, a yellow dot once your server has it, a double tick once a read receipt comes back. In group chats an optional extra rung tells **"read by some" from "read by everyone"**.
+
+Honest about what e-mail can tell you: there is no "delivered to their device but unread" state, because SMTP has no delivery receipt — the rungs shown are the ones the protocol actually knows.
 
 ## 💾 Export / Import everything — accounts included
 
