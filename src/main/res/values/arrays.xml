@@ -305,4 +305,30 @@
         <item>zh-TW</item>
     </string-array>
 
+    <!-- shiroikuma fork (Step 11): delivery-tick glyphs. Values map to drawables in
+         DeliveryStatusView.glyphRes(); "none" hides the indicator for that state. -->
+    <string-array name="tick_glyph_entries">
+        <item>Single tick</item>
+        <item>Double tick</item>
+        <item>Triple tick</item>
+        <item>Clock</item>
+        <item>Dot</item>
+        <item>Tick in a circle</item>
+        <item>Up arrow</item>
+        <item>Exclamation mark</item>
+        <item>Hidden</item>
+    </string-array>
+
+    <string-array name="tick_glyph_values" tools:ignore="InconsistentArrays">
+        <item>tick1</item>
+        <item>tick2</item>
+        <item>tick3</item>
+        <item>clock</item>
+        <item>dot</item>
+        <item>circle_check</item>
+        <item>arrow_up</item>
+        <item>bang</item>
+        <item>none</item>
+    </string-array>
+
 </resources>
