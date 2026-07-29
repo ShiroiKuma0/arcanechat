@@ -163,6 +163,7 @@ public final class ShiroikumaExport {
   private static boolean isUiKey(String k) {
     return k.startsWith("pref_color_")
         || k.startsWith("pref_font_")
+        || k.startsWith("pref_ticks_") // Step 11: delivery-tick size, colours, glyphs, switches
         || k.equals(Prefs.ACCENT_PREF)
         || k.equals(Prefs.CHATLIST_STYLE_PREF);
   }

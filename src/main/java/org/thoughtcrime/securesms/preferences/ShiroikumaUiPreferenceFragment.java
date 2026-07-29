@@ -39,8 +39,11 @@ import org.thoughtcrime.securesms.automation.AutomationAuth;
 import org.thoughtcrime.securesms.automation.StateExportReceiver;
 import org.thoughtcrime.securesms.components.AutomationTokenPreference;
 import org.thoughtcrime.securesms.components.ColorPickerDialog;
+import org.thoughtcrime.securesms.components.DeliveryStatusView;
 import org.thoughtcrime.securesms.components.FontPickerDialog;
 import org.thoughtcrime.securesms.components.SwitchPreferenceCompat;
+import org.thoughtcrime.securesms.components.TickGlyphDialog;
+import org.thoughtcrime.securesms.components.TickSizeDialog;
 import org.thoughtcrime.securesms.util.FontUtil;
 import org.thoughtcrime.securesms.util.Prefs;
 import org.thoughtcrime.securesms.util.ResUtil;
@@ -166,6 +169,8 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     initializeFontPref(Prefs.FONT_LIST_PREVIEW, "pref_font_list_preview");
     initializeFontPref(Prefs.FONT_LIST_DATE, "pref_font_list_date");
     initializeFontPref(Prefs.FONT_SETTINGS, "pref_font_settings");
+
+    initializeTickPrefs();
 
     Preference addFontPref = findPreference("pref_font_add");
     if (addFontPref != null) {
@@ -856,6 +861,139 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
               });
           return true;
         });
+  }
+
+  // shiroikuma fork (Step 11): the delivery-tick section - one shared size, then a colour + glyph
+  // pair per state (plus the spin and group-opt-in switches). Everything applies at the next bind,
+  // so no recreate is needed; the chat list repaints on return via ConversationListFragment.
+  private void initializeTickPrefs() {
+    Preference sizePref = findPreference(Prefs.TICK_SIZE_PREF);
+    if (sizePref != null) {
+      updateTickSizeSummary(sizePref);
+      sizePref.setOnPreferenceClickListener(
+          p -> {
+            TickSizeDialog.show(
+                getContext(),
+                p.getTitle() == null ? "" : p.getTitle().toString(),
+                Prefs.getTickSize(getContext()),
+                size -> {
+                  Prefs.setTickSize(getContext(), size);
+                  updateTickSizeSummary(p);
+                  refreshAllTickGlyphRows(); // every preview is drawn at the tick size
+                });
+            return true;
+          });
+    }
+
+    for (String state :
+        new String[] {
+          Prefs.TICK_SENDING,
+          Prefs.TICK_SENT,
+          Prefs.TICK_RECEIVED,
+          Prefs.TICK_RECEIVED_ALL,
+          Prefs.TICK_FAILED
+        }) {
+      initializeTickColorPref(state);
+      initializeTickGlyphPref(state);
+    }
+
+    SwitchPreferenceCompat spinPref =
+        (SwitchPreferenceCompat) findPreference(Prefs.TICK_SPIN_PREF);
+    if (spinPref != null) {
+      spinPref.setChecked(Prefs.isTickSpin(getContext()));
+      spinPref.setOnPreferenceChangeListener(
+          (p, value) -> {
+            Prefs.setTickSpin(getContext(), Boolean.TRUE.equals(value));
+            return true;
+          });
+    }
+
+    SwitchPreferenceCompat groupPref =
+        (SwitchPreferenceCompat) findPreference(Prefs.TICK_GROUP_ALL_PREF);
+    if (groupPref != null) {
+      groupPref.setChecked(Prefs.isTickGroupAll(getContext()));
+      groupPref.setOnPreferenceChangeListener(
+          (p, value) -> {
+            Prefs.setTickGroupAll(getContext(), Boolean.TRUE.equals(value));
+            return true;
+          });
+    }
+  }
+
+  private void updateTickSizeSummary(Preference pref) {
+    pref.setSummary(getString(R.string.pref_ticks_size_summary, Prefs.getTickSize(getContext())));
+  }
+
+  private void initializeTickColorPref(String state) {
+    Preference pref = findPreference(Prefs.tickColorKey(state));
+    if (pref == null) return;
+    updateColorSwatch(pref, Prefs.getTickColor(getContext(), state));
+    pref.setOnPreferenceClickListener(
+        p -> {
+          ColorPickerDialog.show(
+              getContext(),
+              p.getTitle() == null ? "" : p.getTitle().toString(),
+              Prefs.getTickColor(getContext(), state),
+              color -> {
+                Prefs.setTickColor(getContext(), state, color);
+                updateColorSwatch(p, color);
+                updateTickGlyphRow(state); // the glyph preview is drawn in this colour
+              });
+          return true;
+        });
+  }
+
+  // The glyph row itself previews the chosen glyph, at the configured tick size and colour, so the
+  // page shows the whole ladder as it will actually render beside a message.
+  private void initializeTickGlyphPref(String state) {
+    Preference pref = findPreference(Prefs.tickGlyphKey(state));
+    if (pref == null) return;
+    updateTickGlyphRow(state);
+    pref.setOnPreferenceClickListener(
+        p -> {
+          TickGlyphDialog.show(
+              getContext(),
+              p.getTitle() == null ? "" : p.getTitle().toString(),
+              state,
+              glyph -> {
+                Prefs.setTickGlyph(getContext(), state, glyph);
+                updateTickGlyphRow(state);
+              });
+          return true;
+        });
+  }
+
+  private void updateTickGlyphRow(String state) {
+    Context ctx = getContext();
+    if (ctx == null) return;
+    Preference pref = findPreference(Prefs.tickGlyphKey(state));
+    if (pref == null) return;
+
+    String glyph = Prefs.getTickGlyph(ctx, state);
+    String[] values = getResources().getStringArray(R.array.tick_glyph_values);
+    String[] labels = getResources().getStringArray(R.array.tick_glyph_entries);
+    for (int i = 0; i < values.length; i++) {
+      if (values[i].equals(glyph)) {
+        pref.setSummary(labels[i]);
+        break;
+      }
+    }
+    pref.setIcon(
+        DeliveryStatusView.glyphPreview(
+            ctx, glyph, Prefs.getTickColor(ctx, state), Prefs.getTickSize(ctx)));
+  }
+
+  private void refreshAllTickGlyphRows() {
+    for (String state :
+        new String[] {
+          Prefs.TICK_SENDING,
+          Prefs.TICK_SENT,
+          Prefs.TICK_RECEIVED,
+          Prefs.TICK_RECEIVED_ALL,
+          Prefs.TICK_FAILED
+        }) {
+      updateTickGlyphRow(state);
+    }
   }
 
   private int getColorFor(String key) {
