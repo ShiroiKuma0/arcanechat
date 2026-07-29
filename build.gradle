@@ -46,8 +46,8 @@ android {
         // resulting code would be <= the last shipped one (upgrades must stay monotonic); then
         // start the tail at the first N that exceeds it. 2.56.0 base is 30000749 but 2.53.0+8
         // shipped as 30000754, so this line starts at +6 = 30000755.
-        versionCode 30000759
-        versionName "2.56.0+10"
+        versionCode 30000762
+        versionName "2.56.0+13"
 
         applicationId "chat.delta.lite"
         multiDexEnabled true

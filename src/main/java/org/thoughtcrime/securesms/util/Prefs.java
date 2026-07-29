@@ -272,6 +272,102 @@ public class Prefs {
     setIntegerPreference(context, COLOR_FAB_PREF, color);
   }
 
+  // shiroikuma fork (Step 11): configurable delivery ticks. Size is shared by the chat footer and
+  // the chat-list row; colour + glyph are per state. The states below are the only ones the core
+  // can actually distinguish - email has no "arrived on the recipient's device" signal, so there
+  // is nothing between SENT (our SMTP server took it) and RECEIVED (an MDN read receipt came back).
+  // RECEIVED_ALL is derived from the per-message read-receipt count in groups (opt-in).
+  public static final String TICK_SIZE_PREF = "pref_ticks_size";
+  public static final String TICK_SPIN_PREF = "pref_ticks_spin";
+  public static final String TICK_GROUP_ALL_PREF = "pref_ticks_group_all";
+  public static final String TICK_SENDING = "sending";
+  public static final String TICK_SENT = "sent";
+  public static final String TICK_RECEIVED = "received";
+  public static final String TICK_RECEIVED_ALL = "received_all";
+  public static final String TICK_FAILED = "failed";
+  /** dp; 白い熊's default. The PNG glyphs this replaced were 12dp, so this is 3x the old size. */
+  public static final int TICK_SIZE_DEFAULT = 36;
+
+  public static final int TICK_SIZE_MIN = 6;
+  public static final int TICK_SIZE_MAX = 48;
+  public static final int COLOR_BLUE = 0xFF0000FF;
+  public static final int COLOR_RED = 0xFFFF0000;
+
+  public static String tickColorKey(String state) {
+    return "pref_ticks_color_" + state;
+  }
+
+  public static String tickGlyphKey(String state) {
+    return "pref_ticks_glyph_" + state;
+  }
+
+  public static int getTickColorDefault(String state) {
+    return TICK_SENDING.equals(state)
+        ? COLOR_BLUE
+        : TICK_FAILED.equals(state) ? COLOR_RED : COLOR_YELLOW;
+  }
+
+  public static String getTickGlyphDefault(String state) {
+    switch (state) {
+      case TICK_SENDING:
+        return "clock";
+      case TICK_SENT:
+        // 白い熊, 2026-07-29: the DELIVERED rung is a dot, so it can never be mistaken for the
+        // tick-based rungs above it - shape, not stroke count, carries the distinction.
+        return "dot";
+      case TICK_RECEIVED:
+        return "tick2";
+      case TICK_RECEIVED_ALL:
+        return "tick3";
+      case TICK_FAILED:
+      default:
+        return "bang";
+    }
+  }
+
+  public static int getTickColor(Context context, String state) {
+    return getIntegerPreference(context, tickColorKey(state), getTickColorDefault(state));
+  }
+
+  public static void setTickColor(Context context, String state, int color) {
+    setIntegerPreference(context, tickColorKey(state), color);
+  }
+
+  public static String getTickGlyph(Context context, String state) {
+    return getStringPreference(context, tickGlyphKey(state), getTickGlyphDefault(state));
+  }
+
+  public static void setTickGlyph(Context context, String state, String glyph) {
+    setStringPreference(context, tickGlyphKey(state), glyph);
+  }
+
+  public static int getTickSize(Context context) {
+    int size = getIntegerPreference(context, TICK_SIZE_PREF, TICK_SIZE_DEFAULT);
+    if (size < TICK_SIZE_MIN) return TICK_SIZE_MIN;
+    if (size > TICK_SIZE_MAX) return TICK_SIZE_MAX;
+    return size;
+  }
+
+  public static void setTickSize(Context context, int sizeDp) {
+    setIntegerPreference(context, TICK_SIZE_PREF, sizeDp);
+  }
+
+  public static boolean isTickSpin(Context context) {
+    return getBooleanPreference(context, TICK_SPIN_PREF, true);
+  }
+
+  public static void setTickSpin(Context context, boolean enabled) {
+    setBooleanPreference(context, TICK_SPIN_PREF, enabled);
+  }
+
+  public static boolean isTickGroupAll(Context context) {
+    return getBooleanPreference(context, TICK_GROUP_ALL_PREF, false);
+  }
+
+  public static void setTickGroupAll(Context context, boolean enabled) {
+    setBooleanPreference(context, TICK_GROUP_ALL_PREF, enabled);
+  }
+
   // shiroikuma fork (Step 3): per-category configurable fonts. Each category stores three values
   // under "pref_font_<category>_{family,weight,size}". Defaults ("", 0, 0) mean "leave as-is".
   public static final String FONT_CHAT_TEXT = "chat_text";
@@ -337,6 +433,15 @@ public class Prefs {
     // accent preset + chat-list row style
     setAccent(context, "yellow");
     setChatListStyle(context, CHATLIST_CARDS);
+    // delivery ticks: size, per-state colour + glyph, animation, group opt-in
+    setTickSize(context, TICK_SIZE_DEFAULT);
+    setTickSpin(context, true);
+    setTickGroupAll(context, false);
+    for (String state :
+        new String[] {TICK_SENDING, TICK_SENT, TICK_RECEIVED, TICK_RECEIVED_ALL, TICK_FAILED}) {
+      setTickColor(context, state, getTickColorDefault(state));
+      setTickGlyph(context, state, getTickGlyphDefault(state));
+    }
     // per-category fonts back to "inherit"
     for (String cat :
         new String[] {

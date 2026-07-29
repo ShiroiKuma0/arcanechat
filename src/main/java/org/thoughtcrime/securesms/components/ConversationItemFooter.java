@@ -11,10 +11,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import chat.delta.rpc.Rpc;
 import chat.delta.rpc.RpcException;
+import com.b44t.messenger.DcChat;
+import com.b44t.messenger.DcContact;
+import com.b44t.messenger.DcContext;
 import com.b44t.messenger.DcMsg;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.connect.DcHelper;
 import org.thoughtcrime.securesms.util.DateUtils;
+import org.thoughtcrime.securesms.util.Prefs;
 
 public class ConversationItemFooter extends LinearLayout {
 
@@ -137,10 +141,39 @@ public class ConversationItemFooter extends LinearLayout {
     else if (messageRecord.isPending()) deliveryStatusView.setPending();
     else if (messageRecord.isFailed()) deliveryStatusView.setFailed();
     else if (!messageRecord.isOutgoing() || isOutChannel) deliveryStatusView.setNone();
-    else if (messageRecord.isRemoteRead()) deliveryStatusView.setRead();
-    else if (messageRecord.isDelivered()) deliveryStatusView.setSent();
+    else if (messageRecord.isRemoteRead()) {
+      // shiroikuma fork (Step 11): opt-in extra rung - in a group, tell "read by some" apart from
+      // "read by every other member" via the per-message read-receipt count. Off by default: it
+      // costs one JSON-RPC call per outgoing group row on the bind path.
+      if (Prefs.isTickGroupAll(context) && isReadByAllMembers(messageRecord)) {
+        deliveryStatusView.setReadByAll();
+      } else {
+        deliveryStatusView.setRead();
+      }
+    } else if (messageRecord.isDelivered()) deliveryStatusView.setSent();
     else if (messageRecord.isPreparing()) deliveryStatusView.setPreparing();
     else deliveryStatusView.setPending();
+  }
+
+  /**
+   * shiroikuma fork (Step 11): true when every other member of a group chat has returned a read
+   * receipt for this message. Best-effort - any failure falls back to the plain "received" tick.
+   */
+  private boolean isReadByAllMembers(@NonNull DcMsg messageRecord) {
+    try {
+      DcContext dcContext = DcHelper.getContext(context);
+      DcChat chat = dcContext.getChat(messageRecord.getChatId());
+      if (!chat.isMultiUser()) return false;
+      int others = 0;
+      for (int contactId : dcContext.getChatContacts(chat.getId())) {
+        if (contactId != DcContact.DC_CONTACT_ID_SELF) others++;
+      }
+      if (others <= 0) return false;
+      int read = rpc.getMessageReadReceiptCount(rpc.getSelectedAccountId(), messageRecord.getId());
+      return read >= others;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   public String getDescription() {
