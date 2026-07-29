@@ -887,6 +887,25 @@
     <string name="pref_ui_subgroup_outgoing">Outgoing messages</string>
     <string name="pref_color_list_date">Chat list date &amp; time</string>
     <string name="pref_font_list_date">Chat-list date &amp; time</string>
+    <!-- shiroikuma fork (Step 11): configurable delivery ticks -->
+    <string name="pref_ui_section_ticks">Delivery ticks</string>
+    <string name="pref_ticks_size">Tick size</string>
+    <string name="pref_ticks_size_summary">%1$d dp — applies to the chat bubbles and the chat list</string>
+    <string name="pref_ticks_spin">Spin the sending glyph</string>
+    <string name="pref_ticks_spin_summary">Rotate the icon while the message is still leaving your phone</string>
+    <string name="pref_ticks_group_all">Distinguish “received by all” in groups</string>
+    <string name="pref_ticks_group_all_summary">Show a separate tick once every group member has returned a read receipt. Off by default: it costs one extra query per outgoing group message.</string>
+    <string name="pref_ticks_subgroup_sending">Sending</string>
+    <string name="pref_ticks_subgroup_sent">Sent</string>
+    <string name="pref_ticks_subgroup_received">Received</string>
+    <string name="pref_ticks_subgroup_received_all">Received by all (groups)</string>
+    <string name="pref_ticks_subgroup_failed">Failed</string>
+    <string name="pref_ticks_sending_hint">Still on this phone, not yet handed to the server</string>
+    <string name="pref_ticks_sent_hint">Your outgoing server accepted the message</string>
+    <string name="pref_ticks_received_hint">A read receipt came back from the recipient</string>
+    <string name="pref_ticks_failed_hint">Delivery failed</string>
+    <string name="pref_ticks_colour">Colour</string>
+    <string name="pref_ticks_glyph">Glyph</string>
     <string name="pref_reset_ui">Reset all to defaults</string>
     <string name="pref_reset_ui_summary">Restore every 白い熊 UI colour, font, accent and chat-list style</string>
     <string name="pref_reset_ui_confirm_title">Reset 白い熊 UI?</string>
