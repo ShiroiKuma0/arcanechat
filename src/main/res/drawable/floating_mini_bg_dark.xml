@@ -4,5 +4,10 @@
     android:shape="oval">
     <!-- read issue: https://github.com/deltachat/deltachat-android/issues/480 before introducing an
         attr here. -->
-    <solid android:color="@color/gray78" />
+    <!-- shiroikuma fork: was gray78 (#383838), a gray disc floating over the black chat.
+         Black fill + accent border, same language as the send button. -->
+    <solid android:color="@color/black" />
+    <stroke
+        android:width="1.5dp"
+        android:color="?attr/colorAccent" />
 </shape>
