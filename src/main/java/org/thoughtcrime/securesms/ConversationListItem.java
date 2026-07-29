@@ -346,12 +346,17 @@ public class ConversationListItem extends RelativeLayout
                     });
         color = attrs.getColor(0, Color.BLACK);
       }
+      // shiroikuma fork: the badge fill is the fork's yellow now (it used to be the leftover
+      // purple), so a hardcoded white count would be unreadable. Pick the count colour from the
+      // fill's luminance - black on a light badge, white on a dark (muted) one.
+      final double lum =
+          (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255d;
       unreadIndicator.setImageDrawable(
           TextDrawable.builder()
               .beginConfig()
               .width(ViewUtil.dpToPx(getContext(), 24))
               .height(ViewUtil.dpToPx(getContext(), 24))
-              .textColor(Color.WHITE)
+              .textColor(lum > 0.6 ? Color.BLACK : Color.WHITE)
               .bold()
               .endConfig()
               .buildRound(String.valueOf(unreadCount), color));
