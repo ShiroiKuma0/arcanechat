@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- shiroikuma fork: "Tick in a circle" - a yellow ring with a yellow tick inside and the
+     background showing through between them (白い熊, 2026-07-29). The interior MUST stay
+     transparent, not black-filled: DeliveryStatusView tints the whole drawable with a SRC_IN
+     colorFilter, so any opaque black would simply be repainted in the tick colour. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- annulus: outer circle minus inner circle, evenOdd leaves the middle transparent -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M12,1 A11,11 0 1,0 12,23 A11,11 0 1,0 12,1 Z M12,3.4000000000000004 A8.6,8.6 0 1,0 12,20.6 A8.6,8.6 0 1,0 12,3.4000000000000004 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M6.74,13.38 L9.47,16.11 L11.17,16.11 L17.50,9.79 L15.80,8.09 L9.47,14.41 L11.17,14.41 L8.44,11.68 Z" />
+</vector>

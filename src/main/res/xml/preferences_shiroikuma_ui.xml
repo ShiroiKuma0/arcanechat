@@ -187,6 +187,110 @@
 
     </PreferenceCategory>
 
+    <!-- shiroikuma fork (Step 11): configurable delivery ticks. Size is shared by the chat footer
+         and the chat-list row; colour + glyph are per state. -->
+    <PreferenceCategory
+        android:title="@string/pref_ui_section_ticks"
+        android:layout="@layout/preference_category_shiroikuma">
+        <Preference
+            android:key="pref_ticks_size"
+            android:title="@string/pref_ticks_size"
+            android:layout="@layout/preference_shiroikuma_indent1"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ticks_subgroup_sending"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_color_sending"
+            android:title="@string/pref_ticks_colour"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_glyph_sending"
+            android:title="@string/pref_ticks_glyph"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <org.thoughtcrime.securesms.components.SwitchPreferenceCompat
+            android:key="pref_ticks_spin"
+            android:title="@string/pref_ticks_spin"
+            android:summary="@string/pref_ticks_spin_summary"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ticks_subgroup_sent"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_color_sent"
+            android:title="@string/pref_ticks_colour"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_glyph_sent"
+            android:title="@string/pref_ticks_glyph"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ticks_subgroup_received"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_color_received"
+            android:title="@string/pref_ticks_colour"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_glyph_received"
+            android:title="@string/pref_ticks_glyph"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ticks_subgroup_received_all"
+            android:selectable="false"
+            android:persistent="false" />
+        <org.thoughtcrime.securesms.components.SwitchPreferenceCompat
+            android:key="pref_ticks_group_all"
+            android:title="@string/pref_ticks_group_all"
+            android:summary="@string/pref_ticks_group_all_summary"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_color_received_all"
+            android:title="@string/pref_ticks_colour"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_glyph_received_all"
+            android:title="@string/pref_ticks_glyph"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+
+        <Preference
+            android:layout="@layout/preference_shiroikuma_subheader"
+            android:title="@string/pref_ticks_subgroup_failed"
+            android:selectable="false"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_color_failed"
+            android:title="@string/pref_ticks_colour"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+        <Preference
+            android:key="pref_ticks_glyph_failed"
+            android:title="@string/pref_ticks_glyph"
+            android:layout="@layout/preference_shiroikuma_indent2"
+            android:persistent="false" />
+    </PreferenceCategory>
+
     <PreferenceCategory
         android:title="@string/pref_ui_section_settings_screen"
         android:layout="@layout/preference_category_shiroikuma">
