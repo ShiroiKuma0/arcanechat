@@ -65,7 +65,7 @@
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:background="?attr/floating_mini_bg"
-        android:tint="@color/gray50"
+        android:tint="?attr/colorAccent"
         android:elevation="1dp"
         android:alpha="0.9"
         android:contentDescription="@string/menu_scroll_to_bottom"
