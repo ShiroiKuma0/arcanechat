@@ -32,17 +32,23 @@ import org.thoughtcrime.securesms.util.Util;
  * exports itself headlessly, reports progress with real counts, and replies with the written path
  * and size.
  *
- * <p>Two exported actions, both gated by {@link AutomationAuth} (switch first, then token — they are
- * reported as distinct errors because they debug differently):
+ * <p>Three exported actions, all gated by {@link AutomationAuth} (switch first, then token — they
+ * are reported as distinct errors because they debug differently):
  *
  * <ul>
  *   <li><b>{@code shiroikuma.arcanechat.action.LIST_CATEGORIES}</b> — replies {@code OK:} plus one
- *       {@code id<TAB>label} line per exportable category. The Accounts category also lists each
- *       configured account as an {@code accounts.<accountId><TAB>label<TAB>accounts} sub-option.
+ *       {@code id<TAB>label<TAB>parent<TAB>on|off} line per exportable category, where the fourth
+ *       field says whether the item starts ticked in 保存復元's picker and the third is empty for a
+ *       top-level item. The Accounts category also lists each configured account as an {@code
+ *       accounts.<accountId>} sub-option, which inherits its parent's default.
  *   <li><b>{@code shiroikuma.arcanechat.action.EXPORT_STATE}</b> — runs the same category zip the
  *       Export/Import page writes, headlessly, and replies {@code OK:<path>|<bytes>|<human>|<n>
  *       categories}. Extras: {@code path} (absolute directory, overrides the configured one),
  *       {@code items} (comma-separated category ids; absent = everything), {@code progress_action}.
+ *   <li><b>{@code shiroikuma.arcanechat.action.CANCEL_EXPORT}</b> — stops a running export at its
+ *       next entry boundary, deletes the partial file, and lets the original request answer {@code
+ *       ERROR:cancelled}. Fire-and-forget: it sends no reply of its own, and it is a silent no-op
+ *       when nothing is running (or when the export already finished).
  * </ul>
  *
  * <p>The reply is always a <b>fresh broadcast</b> with {@code FLAG_INCLUDE_STOPPED_PACKAGES} — on
@@ -58,6 +64,7 @@ public class StateExportReceiver extends BroadcastReceiver {
   public static final String ACTION_EXPORT_STATE = "shiroikuma.arcanechat.action.EXPORT_STATE";
   public static final String ACTION_LIST_CATEGORIES =
       "shiroikuma.arcanechat.action.LIST_CATEGORIES";
+  public static final String ACTION_CANCEL_EXPORT = "shiroikuma.arcanechat.action.CANCEL_EXPORT";
 
   private static final String EXTRA_TOKEN = "token";
   private static final String EXTRA_PATH = "path";
@@ -81,6 +88,10 @@ public class StateExportReceiver extends BroadcastReceiver {
   public void onReceive(Context context, Intent intent) {
     if (intent == null) return;
     final String action = intent.getAction();
+    if (ACTION_CANCEL_EXPORT.equals(action)) {
+      handleCancel(context, intent);
+      return;
+    }
     if (!ACTION_EXPORT_STATE.equals(action) && !ACTION_LIST_CATEGORIES.equals(action)) return;
 
     final Context app = context.getApplicationContext();
@@ -132,16 +143,67 @@ public class StateExportReceiver extends BroadcastReceiver {
         });
   }
 
+  // --- CANCEL_EXPORT --------------------------------------------------------------------------
+
+  /**
+   * Stops a running export. Token-gated like the other two, but <b>fire-and-forget</b>: it never
+   * answers with {@code OK:} or anything else — the terminal reply belongs to the export request
+   * itself, which unwinds with {@code ERROR:cancelled} once it sees the flag. Safe at any time: with
+   * no export in flight (or one that already finished) this is a silent no-op.
+   *
+   * <p>Routed through this <b>exported</b> receiver on purpose: the export runs on a background
+   * thread owned by the receiver's {@code goAsync()} — there is no service for a third-party app to
+   * be unable to start, and nothing to stop or unwake beyond the flag. The optional {@code reply_id}
+   * extra is accepted and ignored, since only one export can run at a time.
+   */
+  private void handleCancel(Context context, Intent intent) {
+    final Context app = context.getApplicationContext();
+    final String token = intent.getStringExtra(EXTRA_TOKEN);
+    final String replyId = intent.getStringExtra(EXTRA_REPLY_ID);
+    final PendingResult pendingResult = goAsync();
+
+    Util.runOnAnyBackgroundThread(
+        () -> {
+          try {
+            if (!AutomationAuth.isEnabled(app)) {
+              Log.w(TAG, "CANCEL_EXPORT ignored — automation disabled");
+            } else if (!AutomationAuth.matches(app, token)) {
+              Log.w(TAG, "CANCEL_EXPORT ignored — bad token");
+            } else {
+              boolean running = ShiroikumaExport.requestCancel();
+              Log.i(
+                  TAG,
+                  "CANCEL_EXPORT ["
+                      + replyId
+                      + "] — "
+                      + (running ? "unwinding the running export" : "nothing running, no-op"));
+            }
+          } catch (Throwable t) {
+            Log.w(TAG, "CANCEL_EXPORT failed", t);
+          }
+          pendingResult.finish();
+        });
+  }
+
   // --- LIST_CATEGORIES ------------------------------------------------------------------------
 
-  /** {@code OK:} + one {@code id<TAB>label[<TAB>parent-id]} line per category / sub-option. */
+  /**
+   * {@code OK:} + one {@code id<TAB>label<TAB>parent<TAB>on|off} line per category / sub-option. The
+   * fourth field is the contract's default-selected flag — positional, so a top-level item still
+   * carries the <b>empty</b> third field before it. Sub-options inherit their parent's default.
+   */
   private static String listCategories(Context app) {
     StringBuilder sb = new StringBuilder("OK:");
     boolean first = true;
     for (ShiroikumaExport.Cat cat : ShiroikumaExport.Cat.values()) {
       if (!first) sb.append('\n');
       first = false;
-      sb.append(cat.id).append('\t').append(app.getString(cat.labelRes));
+      sb.append(cat.id)
+          .append('\t')
+          .append(app.getString(cat.labelRes))
+          .append('\t') // no parent - the field stays empty so "on|off" keeps its position
+          .append('\t')
+          .append(onOff(cat.defaultSelected));
       if (cat == ShiroikumaExport.Cat.ACCOUNTS) {
         // each configured profile is independently selectable via items=accounts.<id>
         for (ShiroikumaExport.AccountEntry entry : ShiroikumaExport.listAccounts(app)) {
@@ -150,11 +212,17 @@ public class StateExportReceiver extends BroadcastReceiver {
               .append('\t')
               .append(entry.label)
               .append('\t')
-              .append(cat.id);
+              .append(cat.id)
+              .append('\t')
+              .append(onOff(cat.defaultSelected));
         }
       }
     }
     return sb.toString();
+  }
+
+  private static String onOff(boolean on) {
+    return on ? "on" : "off";
   }
 
   // --- EXPORT_STATE ---------------------------------------------------------------------------
@@ -216,9 +284,8 @@ public class StateExportReceiver extends BroadcastReceiver {
         ShiroikumaExport.export(app, selection.cats, selection.accountIds, out, progress);
       } catch (Throwable t) {
         //noinspection ResultOfMethodCallIgnored
-        target.delete(); // never leave a truncated export behind
-        Log.w(TAG, "headless export failed", t);
-        return "ERROR:" + reason(t);
+        target.delete(); // never leave a truncated export behind - cancelled or failed
+        return failure(t);
       }
       bytes = target.length();
       writtenPath = target.getAbsolutePath();
@@ -232,8 +299,7 @@ public class StateExportReceiver extends BroadcastReceiver {
         ShiroikumaExport.export(app, selection.cats, selection.accountIds, counting, progress);
       } catch (Throwable t) {
         file.delete();
-        Log.w(TAG, "headless export failed", t);
-        return "ERROR:" + reason(t);
+        return failure(t);
       }
       long reported = file.length();
       bytes = reported > 0 ? reported : counting.written;
@@ -412,6 +478,19 @@ public class StateExportReceiver extends BroadcastReceiver {
     double mb = kb / 1024.0;
     if (mb < 1024) return String.format(Locale.ROOT, "%.1f MB", mb);
     return String.format(Locale.ROOT, "%.2f GB", mb / 1024.0);
+  }
+
+  /**
+   * The single-line failure reply, once the partial file has been removed. A cancel is reported as
+   * the contract's fixed {@code ERROR:cancelled} rather than as whatever the unwind threw.
+   */
+  private static String failure(Throwable t) {
+    if (t instanceof ShiroikumaExport.CancelledException) {
+      Log.i(TAG, "headless export cancelled — partial file removed");
+      return "ERROR:cancelled";
+    }
+    Log.w(TAG, "headless export failed", t);
+    return "ERROR:" + reason(t);
   }
 
   /** One short line, whatever the throwable carried — the reply is a single line by contract. */
