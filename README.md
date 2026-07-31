@@ -10,7 +10,7 @@ A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with *
 
 Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-**📥 Latest release: [`2.56.0+13`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
+**📥 Latest release: [`2.56.0+14`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
 </div>
 
@@ -36,7 +36,7 @@ One tap saves **your accounts and every setting** — full per-account backups (
 
 ## 🤖 Backups on command — no hands, no UI
 
-An **automation export** switch (off until you turn it on) lets a companion app back this one up as part of a whole-device batch: a token-gated intent runs the very same category export **headlessly** — no window, no taps — writes **one zip** to whatever directory the caller names, and answers with the exact path, byte count, and human size. While it runs it reports **real counts** (`区分 2/4 — Accounts`, `アカウント 1/2 — you@example.org`), never a meaningless percentage. The companion can also ask what this app can export and get back the category list, with **each account offered separately**, so a batch can grab one profile instead of all of them. The shared secret lives in its own device-local store, is compared in constant time, and can never appear inside a backup.
+An **automation export** switch (off until you turn it on) lets a companion app back this one up as part of a whole-device batch: a token-gated intent runs the very same category export **headlessly** — no window, no taps — writes **one zip** to whatever directory the caller names, and answers with the exact path, byte count, and human size. While it runs it reports **real counts** (`区分 2/4 — Accounts`, `アカウント 1/2 — you@example.org`), never a meaningless percentage. The companion can also ask what this app can export and get back the category list — with **each account offered separately**, so a batch can grab one profile instead of all of them, and with each item saying **whether it should start ticked**, so the picker reflects this app's own answer rather than a guess. A running export can be **stopped from outside**: it unwinds at the next safe boundary, deletes its half-written file, and reports that it was cancelled, so a backup you stopped never quietly finishes and lands anyway. The shared secret lives in its own device-local store, is compared in constant time, and can never appear inside a backup.
 
 ## 🔤 Fonts everywhere — including your own files
 
