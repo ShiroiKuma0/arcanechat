@@ -68,6 +68,26 @@ public final class ShiroikumaExport {
       new java.util.concurrent.atomic.AtomicBoolean(false);
 
   /**
+   * Set by {@link #requestCancel()}; the export's write loop checks it between entries (and between
+   * buffer chunks while streaming an account tar) and unwinds at the next boundary. Never an
+   * interrupt, never a kill — a {@code write()} in flight always completes. Cleared when an export
+   * starts and when it ends, so a cancel that arrives with nothing running can never leak into a
+   * later run.
+   */
+  private static volatile boolean cancelRequested = false;
+
+  /**
+   * Thrown out of {@link #export} once a cancel has been seen. The caller deletes its partial file
+   * in the same place it handles every other failure, so a cancelled export leaves the backup
+   * directory exactly as it found it.
+   */
+  public static final class CancelledException extends java.io.IOException {
+    CancelledException() {
+      super("cancelled");
+    }
+  }
+
+  /**
    * Keys that must not travel between installs (device/session-local state). The export directory
    * and the automation switch/token live in their own prefs files ({@link #EXIMPORT_PREFS} /
    * {@code AutomationAuth.PREFS}), which this engine never reads — so the token can never end up
@@ -90,9 +110,24 @@ public final class ShiroikumaExport {
     public final String id;
     @StringRes public final int labelRes;
 
+    /**
+     * Whether the item starts <b>ticked</b> in a picker — this app's own Export/Import panel and,
+     * via the automation contract's optional fourth {@code LIST_CATEGORIES} field ({@code on|off}),
+     * 自由作業盤's 保存復元 item editor. Everything this app exports is unique and not re-creatable
+     * (the {@code off} rule is for large derived caches — downloaded tiles, thumbnail caches — of
+     * which this app has none), so every category is {@code on}; the flag exists so the app states
+     * its default rather than the picker assuming one, and so a later category inherits the field.
+     */
+    public final boolean defaultSelected;
+
     Cat(String id, @StringRes int labelRes) {
+      this(id, labelRes, true);
+    }
+
+    Cat(String id, @StringRes int labelRes, boolean defaultSelected) {
       this.id = id;
       this.labelRes = labelRes;
+      this.defaultSelected = defaultSelected;
     }
   }
 
@@ -125,6 +160,28 @@ public final class ShiroikumaExport {
   }
 
   private ShiroikumaExport() {}
+
+  // --- cancellation ---------------------------------------------------------------------------
+
+  /** Whether an export is in flight right now (one at a time, process-wide). */
+  public static boolean isExportRunning() {
+    return EXPORT_RUNNING.get();
+  }
+
+  /**
+   * Asks a running export to stop at its next entry boundary; safe to call at any time and from any
+   * thread. With nothing running it is a silent no-op (the flag is cleared again by the next export
+   * before any work happens). Returns whether an export was actually running, for logging only.
+   */
+  public static boolean requestCancel() {
+    boolean running = EXPORT_RUNNING.get();
+    cancelRequested = true;
+    return running;
+  }
+
+  private static void throwIfCancelled() throws CancelledException {
+    if (cancelRequested) throw new CancelledException();
+  }
 
   /** The configured accounts, in core order; unconfigured ones have nothing to back up. */
   @NonNull
@@ -220,6 +277,7 @@ public final class ShiroikumaExport {
     if (!EXPORT_RUNNING.compareAndSet(false, true)) {
       throw new IllegalStateException("export already running");
     }
+    cancelRequested = false; // a stale cancel must never kill the run that is only now starting
     try (ZipOutputStream zip = new ZipOutputStream(out)) {
       JSONArray catIds = new JSONArray();
       for (Cat c : cats) catIds.put(c.id);
@@ -237,6 +295,7 @@ public final class ShiroikumaExport {
       int total = cats.size();
       int n = 0;
       for (Cat cat : cats) {
+        throwIfCancelled();
         n++;
         if (progress != null) {
           progress.onProgress(
@@ -259,6 +318,7 @@ public final class ShiroikumaExport {
             context.getString(R.string.eim_progress_unit_category));
       }
     } finally {
+      cancelRequested = false;
       EXPORT_RUNNING.set(false);
     }
   }
@@ -286,6 +346,9 @@ public final class ShiroikumaExport {
     try {
       int n = 0;
       for (AccountEntry entry : selected) {
+        // the core's export_backup below is one blocking call and cannot be interrupted, so a
+        // cancel that lands mid-account takes effect once it returns - at this boundary
+        throwIfCancelled();
         int accountId = entry.accountId;
         DcContext acc = accounts.getAccount(accountId);
         if (progress != null) {
@@ -312,7 +375,7 @@ public final class ShiroikumaExport {
                 .put("tar", entryName));
         zip.putNextEntry(new ZipEntry(entryName));
         try (InputStream in = new FileInputStream(produced[0])) {
-          copy(in, zip);
+          copy(in, zip, true); // an account tar is big - a cancel takes effect between chunks
         }
         zip.closeEntry();
         deleteRecursive(dir); // free the temp tar before the next account
@@ -324,9 +387,21 @@ public final class ShiroikumaExport {
   }
 
   private static void copy(InputStream in, OutputStream out) throws Exception {
+    copy(in, out, false);
+  }
+
+  /**
+   * @param cancellable export-side copies check the cancel flag <b>between</b> buffers, so a stop
+   *     unwinds promptly without ever interrupting a {@code write()} in flight. Import-side copies
+   *     pass false - a cancel is about the export only.
+   */
+  private static void copy(InputStream in, OutputStream out, boolean cancellable) throws Exception {
     byte[] buf = new byte[65536];
     int n;
-    while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+    while ((n = in.read(buf)) > 0) {
+      if (cancellable) throwIfCancelled();
+      out.write(buf, 0, n);
+    }
   }
 
   private static void deleteRecursive(File f) {
