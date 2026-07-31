@@ -408,23 +408,27 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     root.addView(eimStatusTv, statusLp);
     refreshEximportDialogStatus();
 
-    // select-all + one checkbox per category, all ticked by default (Kōjiki flow)
+    // select-all + one checkbox per category, seeded from Cat.defaultSelected - the same flag the
+    // automation LIST_CATEGORIES reply sends as its fourth field, so both pickers open identically
     List<CheckBox> catBoxes = new ArrayList<>();
     CheckBox selectAll = new CheckBox(ctx);
     selectAll.setText(R.string.eim_select_all);
     selectAll.setTextColor(accent);
     selectAll.setTypeface(null, Typeface.BOLD);
-    selectAll.setChecked(true);
     root.addView(selectAll);
+    boolean allOn = true;
     for (ShiroikumaExport.Cat cat : ShiroikumaExport.Cat.values()) {
       CheckBox cb = new CheckBox(ctx);
       cb.setText(cat.labelRes);
       cb.setTextColor(accent);
-      cb.setChecked(true);
+      cb.setChecked(cat.defaultSelected);
       cb.setTag(cat);
       catBoxes.add(cb);
       root.addView(cb);
+      allOn &= cat.defaultSelected;
     }
+    // set before the listener is attached, so seeding never cascades over the per-category defaults
+    selectAll.setChecked(allOn);
     selectAll.setOnCheckedChangeListener(
         (btn, checked) -> {
           for (CheckBox cb : catBoxes) cb.setChecked(checked);
