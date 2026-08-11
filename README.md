@@ -10,7 +10,7 @@ A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with *
 
 Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-**📥 Latest release: [`2.56.0+14`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
+**📥 Latest release: [`2.56.0+016`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
 </div>
 
@@ -45,6 +45,12 @@ Independent font **family, weight, and size** per text surface: chat messages, t
 ## ✨ Accent presets & chat-list styles
 
 Eight one-tap **accent presets** (yellow, white, cyan, green, orange, red, magenta, blue) drive ripples, switches, dialogs, popup menus, the compose bar, and document chips together. The chat list itself has **six selectable row styles** — rounded cards, filled cards, accent bar, dividers, inset dividers, or plain.
+
+## 📞 In-call controls that match the app
+
+The call screen wears the same palette as everything else: mute, camera, speaker, and switch-camera are **black discs with an accent border and an accent glyph** instead of stock's gray-on-white circles — and they follow the accent preset like every other surface. Hang up stays unmistakably **red**. The speaker button is a plain **speaker ⇄ earpiece toggle** now, one tap per flip, with the full audio-device picker still one **long press** away for a bluetooth or wired headset.
+
+An incoming call matches: the caller's avatar sits in an **accent ring**, and the Audio / Video answer-mode chips are black with an accent border, the chosen one filling **solid accent with a black label** — no washed-out half-transparent state. Answer and Decline keep their **green and red**, because accept and reject should never need a second look.
 
 ## 🛡️ Protected contacts (companion automation)
 

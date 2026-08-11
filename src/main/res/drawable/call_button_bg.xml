@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- shiroikuma fork: in-call control button - a black disc with an accent border (tracks
+     ?attr/colorAccent, so it follows the accent preset). Replaces the gray FloatingActionButton
+     background; the glyph itself is accent-tinted in activity_call.xml. The hang-up button keeps
+     its red FAB. -->
+<ripple
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorAccent">
+    <item android:id="@android:id/mask">
+        <shape android:shape="oval">
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#000000" />
+            <stroke android:width="2dp" android:color="?attr/colorAccent" />
+        </shape>
+    </item>
+</ripple>
