@@ -6,6 +6,8 @@ import android.app.PictureInPictureParams;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -48,6 +50,8 @@ import java.util.List;
 import org.thoughtcrime.securesms.BuildConfig;
 import org.thoughtcrime.securesms.EglUtils;
 import org.thoughtcrime.securesms.R;
+import org.thoughtcrime.securesms.util.DynamicTheme;
+import org.thoughtcrime.securesms.util.ThemeUtil;
 import org.webrtc.RendererCommon;
 import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoTrack;
@@ -121,6 +125,11 @@ public class CallActivity extends AppCompatActivity {
       finish();
       return;
     }
+
+    // shiroikuma fork: this activity is not a BaseActionBarActivity, so DynamicTheme never runs
+    // for it and ?attr/colorAccent would resolve to the Material3 default. Layer the chosen accent
+    // preset on before inflating, so the call controls are yellow (or whatever accent is set).
+    getTheme().applyStyle(DynamicTheme.getAccentOverlay(this), true);
 
     setContentView(R.layout.activity_call);
 
@@ -315,6 +324,7 @@ public class CallActivity extends AppCompatActivity {
     remoteAvatarView = findViewById(R.id.remote_avatar_view);
 
     answerModeSelector = findViewById(R.id.answer_mode_selector);
+    styleAnswerModeSelector();
 
     endCallButton = findViewById(R.id.end_call_button);
     answerButton = findViewById(R.id.answer_button);
@@ -327,6 +337,42 @@ public class CallActivity extends AppCompatActivity {
     initializeVideoRenderers();
     setupButtonListeners();
     setupAccessibility();
+  }
+
+  /**
+   * shiroikuma fork: the incoming-call Audio/Video buttons are stock Material3 outlined buttons,
+   * so on this activity's Material3 theme they draw a purple stroke and label. Repaint them in
+   * the fork's palette - unchecked is a black chip with an accent border and label, checked is a
+   * solid accent chip with a black label - which keeps the selection readable without any
+   * half-transparent yellow (that would read olive on black). Done in code rather than with a
+   * <selector> because a ColorStateList may only reference theme attributes from API 23 up, and
+   * this app is minSdk 21; the 2dp stroke width itself is set in the layout so the enclosing
+   * MaterialButtonToggleGroup sees it while it computes its shared-border margins.
+   */
+  private void styleAnswerModeSelector() {
+    int accent = ThemeUtil.getThemedColor(this, R.attr.colorAccent);
+    int[][] states = {new int[] {android.R.attr.state_checked}, new int[0]};
+
+    ColorStateList fill = new ColorStateList(states, new int[] {accent, Color.BLACK});
+    ColorStateList foreground = new ColorStateList(states, new int[] {Color.BLACK, accent});
+    ColorStateList ripple = ColorStateList.valueOf((accent & 0x00FFFFFF) | 0x66000000);
+
+    for (int id : new int[] {R.id.answer_audio_only_button, R.id.answer_video_button}) {
+      View view = findViewById(id);
+
+      if (!(view instanceof MaterialButton)) {
+        Log.w(TAG, "Answer mode button " + id + " is not a MaterialButton, not restyling");
+        continue;
+      }
+
+      MaterialButton button = (MaterialButton) view;
+
+      button.setBackgroundTintList(fill);
+      button.setStrokeColor(ColorStateList.valueOf(accent));
+      button.setTextColor(foreground);
+      button.setIconTint(foreground);
+      button.setRippleColor(ripple);
+    }
   }
 
   private void initializeVideoRenderers() {
@@ -394,11 +440,21 @@ public class CallActivity extends AppCompatActivity {
           }
         });
 
+    // shiroikuma fork: a tap flips speaker <-> earpiece directly instead of opening the endpoint
+    // picker; the picker stays reachable with a long press (bluetooth / wired headset).
     speakerButton.setOnClickListener(
+        v -> {
+          if (viewModel != null) {
+            toggleSpeakerphone();
+          }
+        });
+
+    speakerButton.setOnLongClickListener(
         v -> {
           if (viewModel != null) {
             showAudioDevicePicker();
           }
+          return true;
         });
 
     switchCameraButton.setOnClickListener(
@@ -719,6 +775,46 @@ public class CallActivity extends AppCompatActivity {
 
     speakerButton.setImageResource(iconRes);
     Log.d(TAG, "Speaker button updated for endpoint: " + endpoint.getName());
+  }
+
+  /**
+   * shiroikuma fork: plain speaker/earpiece toggle for the speaker button. Anything that is not
+   * the speaker (earpiece, bluetooth, wired headset) counts as "not on speaker", so the first tap
+   * always goes to the speaker and the next one back to the earpiece.
+   */
+  private void toggleSpeakerphone() {
+    List<CallEndpointCompat> endpoints = viewModel.getAvailableAudioEndpoints().getValue();
+
+    if (endpoints == null || endpoints.isEmpty()) {
+      Log.w(TAG, "No audio endpoints available, cannot toggle speaker");
+      return;
+    }
+
+    CallEndpointCompat current = viewModel.getCurrentAudioEndpoint().getValue();
+    boolean onSpeaker = current != null && current.getType() == CallEndpointCompat.TYPE_SPEAKER;
+
+    int wantedType =
+        onSpeaker ? CallEndpointCompat.TYPE_EARPIECE : CallEndpointCompat.TYPE_SPEAKER;
+
+    CallEndpointCompat target = findEndpointByType(endpoints, wantedType);
+
+    if (target == null) {
+      Log.w(TAG, "No endpoint of type " + wantedType + " available");
+      return;
+    }
+
+    viewModel.selectAudioDevice(target);
+  }
+
+  @Nullable
+  private static CallEndpointCompat findEndpointByType(
+      List<CallEndpointCompat> endpoints, int type) {
+    for (CallEndpointCompat endpoint : endpoints) {
+      if (endpoint.getType() == type) {
+        return endpoint;
+      }
+    }
+    return null;
   }
 
   private void showAudioDevicePicker() {
