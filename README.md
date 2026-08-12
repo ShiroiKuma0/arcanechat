@@ -10,7 +10,7 @@ A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with *
 
 Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-**📥 Latest release: [`2.58.1+015`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
+**📥 Latest release: [`2.58.1+001`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
 </div>
 

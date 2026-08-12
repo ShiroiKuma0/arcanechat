@@ -9,7 +9,7 @@ so it installs side-by-side with official ArcaneChat.
 
 ---
 
-## 白い熊 ArcaneChat 2.58.1+015 — 2026-08-12
+## 白い熊 ArcaneChat 2.58.1+001 — 2026-08-12
 
 Built on upstream **ArcaneChat v2.58.1** (up from v2.56.0). A pure upstream sync — no new fork
 features; the whole customization stack was replayed onto the new release and reconciled.
@@ -38,8 +38,19 @@ features; the whole customization stack was replayed onto the new release and re
   now renders in our luminance-picked colour, so large counts stay black-on-yellow.
 - Hebrew joined upstream, so `values-he` gets the fork label — the launcher would otherwise read
   "Delta Chat" under a Hebrew system locale.
-- Version tail restarted at **+015** (`30000766`) rather than +1: upstream's base `30000751` sits
-  below the `30000765` that shipped as 2.56.0+016, and an upgrade must never be a downgrade.
+**New versioning scheme**
+
+- The build counter now **always restarts at `+001`** for a new upstream release. Previously the
+  fork's `versionCode` was `upstreamCode + N`, which gave exactly one slot per upstream release —
+  upstream's code moved by 2 across two releases while 16 builds were made — so each sync had to
+  start the counter wherever the code stayed monotonic (`+4`, `+6`, `+015`) instead of at 1.
+- `versionCode` is now `(upstreamCode − 27000000) × 100 + N`, giving 99 build slots per upstream
+  release. The subtraction strips the constant prefix upstream's code carries, because Android's
+  `versionCode` is a signed 32-bit int and a plain `× 100` would exceed it.
+- The per-ABI `× 10 + abi` multiplier is disabled: it exists for multi-APK store listings, and this
+  fork ships a single `arm64-v8a` APK, so it only cost a digit of headroom.
+- This release is `300075101`, comfortably above the `300007652` that 2.56.0+016 carried, so it
+  still installs as an upgrade.
 
 ---
 
