@@ -37,18 +37,32 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
-        // shiroikuma fork: +N build scheme (App Manager / Handy RSS style), committed and bumped
-        // per feature. versionName = "<upstream>+<N>"; base versionCode = <upstreamCode> + N.
-        // NB: upstream's per-ABI override already does versionCode*10+abi (see applicationVariants
-        // below), and the upstream code is already 8 digits, so the other forks' "*10000 + N"
-        // would overflow Android's ~2.1e9 ceiling - here we add N to the base instead.
-        // On upstream rebase: reset to "<new upstream>+1" / <new upstream code> + 1 - UNLESS the
-        // resulting code would be <= the last shipped one (upgrades must stay monotonic); then
-        // start the tail at the first N that exceeds it. 2.58.1 base is 30000751 but 2.56.0+016
-        // shipped as 30000765, so this line starts at +015 = 30000766. The +N is zero-padded to
-        // three digits in versionName (family-wide rule); versionCode stays a plain integer.
-        versionCode 30000766
-        versionName "2.58.1+015"
+        // shiroikuma fork versioning (adopted 2026-08-12, replaces the old "<upstreamCode> + N"
+        // scheme and its monotonic guard). Two knobs only - on an upstream rebase set
+        // shiroikumaUpstreamCode/Name to the new upstream values and reset shiroikumaBuild to 1:
+        //
+        //   versionCode = (upstreamCode - 27000000) * 100 + N      versionName = "<upstream>+<NNN>"
+        //
+        // The build counter therefore ALWAYS restarts at +001 for a new upstream release, with 99
+        // build slots per release, and the code still climbs because upstream's own code does.
+        // Why the two adjustments: Android's versionCode is a signed 32-bit int (max 2147483647),
+        // and upstream's code is already 8 digits - a plain "upstreamCode * 100" would be
+        // 3.0e9, over the ceiling - so the constant 27000000 prefix that upstream's code always
+        // carries is stripped first. For the same reason the per-ABI "* 10 + abi" override in
+        // applicationVariants below is disabled for this fork (we ship a single ABI, so it only
+        // cost us a digit). Headroom: valid until upstream's code reaches ~48.4 million.
+        // The +N is zero-padded to three digits in versionName (family-wide rule); versionCode
+        // stays a plain integer.
+        def shiroikumaUpstreamCode = 30000751   // upstream v2.58.1
+        def shiroikumaUpstreamName = "2.58.1"
+        def shiroikumaBuild = 1
+
+        // NB: compute into a local first - "versionCode (a - b) * 100 + n" is parsed by Groovy as
+        // the method call versionCode(a - b), which then multiplies its null return value.
+        def shiroikumaCode = (shiroikumaUpstreamCode - 27000000) * 100 + shiroikumaBuild
+
+        versionCode shiroikumaCode
+        versionName shiroikumaUpstreamName + "+" + String.format("%03d", shiroikumaBuild)
 
         applicationId "chat.delta.lite"
         multiDexEnabled true
@@ -201,13 +215,13 @@ android {
                     .replace("android", "ArcaneChat")
                     .replace("-release", "")
                     .replace(".apk", "-${variant.versionName}.apk")
-            if(project.hasProperty("ABI_FILTER")) {
-                output.versionCodeOverride =
-                        variant.versionCode * 10 + project.ext.versionCodes.get(ABI_FILTER)
-            } else {
-                output.versionCodeOverride =
-                        variant.versionCode * 10 + project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI), 4)
-            }
+            // shiroikuma fork: upstream's per-ABI "versionCode * 10 + abi" override is disabled.
+            // It exists so a multi-ABI Play listing can carry one code per split; we sideload a
+            // single arm64-v8a APK, so it only consumed a decimal digit of headroom - and the
+            // fork's versionCode formula (see defaultConfig) needs that digit. The APK's code is
+            // therefore exactly the defaultConfig versionCode. If multi-ABI splits are ever built
+            // from this fork, restore the upstream branches below or the splits will collide.
+            output.versionCodeOverride = variant.versionCode
         }
     }
 
