@@ -44,9 +44,11 @@ android {
         // would overflow Android's ~2.1e9 ceiling - here we add N to the base instead.
         // On upstream rebase: reset to "<new upstream>+1" / <new upstream code> + 1 - UNLESS the
         // resulting code would be <= the last shipped one (upgrades must stay monotonic); then
-        // start the tail at the first N that exceeds it.
-        versionCode 30000752
-        versionName "2.58.1+1"
+        // start the tail at the first N that exceeds it. 2.58.1 base is 30000751 but 2.56.0+016
+        // shipped as 30000765, so this line starts at +015 = 30000766. The +N is zero-padded to
+        // three digits in versionName (family-wide rule); versionCode stays a plain integer.
+        versionCode 30000766
+        versionName "2.58.1+015"
 
         applicationId "chat.delta.lite"
         multiDexEnabled true
