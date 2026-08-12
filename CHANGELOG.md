@@ -9,6 +9,40 @@ so it installs side-by-side with official ArcaneChat.
 
 ---
 
+## 白い熊 ArcaneChat 2.58.1+015 — 2026-08-12
+
+Built on upstream **ArcaneChat v2.58.1** (up from v2.56.0). A pure upstream sync — no new fork
+features; the whole customization stack was replayed onto the new release and reconciled.
+
+**What upstream brings**
+- **Reactions in channels**, with a reworked reactions-details overview, and channel owners can
+  mute their own channel.
+- **Four call fixes**: the mic stays active when the screen goes off on Android 14+, a call now
+  renegotiates on a network change instead of dropping, calls support multiple profiles properly,
+  and stray leave hints no longer dismiss the incoming-call prompt.
+- Images can be picked without granting storage permission; video playback is truly fullscreen;
+  videos are re-encoded correctly when sent from the file picker or in bulk; audio recording
+  requests and respects audio focus.
+- Search mode survives an incoming message instead of collapsing.
+- Big unread counts are rendered human-readably instead of overflowing the badge.
+- Relay handling reworked — up to 5 relays, the sending relay is a per-device setting, phased-out
+  relays are shown as such, and connectivity counts as up if any one relay is connected.
+- Native core 2.56 → **2.58.0**, plus reduced traffic (fewer keys on group chats, leaner read
+  receipts) and a refreshed translation set including **Hebrew**.
+
+**Fork reconciliation**
+- Upstream restyled its dark-mode self-bubbles (`gray70` fill, `light_pink` timestamps). Ours are
+  kept: the bubble fill stays `@color/white` — the identity `MULTIPLY` tint the bubble drawable
+  depends on — and the timestamps stay `#FFFF00`.
+- The unread-badge change was merged rather than overridden: upstream's human-readable count text
+  now renders in our luminance-picked colour, so large counts stay black-on-yellow.
+- Hebrew joined upstream, so `values-he` gets the fork label — the launcher would otherwise read
+  "Delta Chat" under a Hebrew system locale.
+- Version tail restarted at **+015** (`30000766`) rather than +1: upstream's base `30000751` sits
+  below the `30000765` that shipped as 2.56.0+016, and an upgrade must never be a downgrade.
+
+---
+
 ## 白い熊 ArcaneChat 2.56.0+016 — 2026-08-11
 
 Built on upstream **ArcaneChat v2.56.0**. The call screen, which had stayed stock, joins the rest of
