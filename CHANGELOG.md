@@ -9,6 +9,44 @@ so it installs side-by-side with official ArcaneChat.
 
 ---
 
+## 白い熊 ArcaneChat 2.59.1+001 — 2026-08-26
+
+Built on upstream **ArcaneChat v2.59.1** (up from v2.58.1). A pure upstream sync — no new fork
+features; all 49 customization commits were replayed onto the new release and reconciled.
+
+**What upstream brings**
+- **Call crashes fixed** — null-pointer and other exceptions that could kill the app while placing
+  a call are gone; the call coordinator was substantially reworked.
+- **Read messages sync across your devices even with "Read Receipts" turned off** — the core now
+  sends read markers to your own devices regardless of that setting.
+- Group and channel events phrased about *you* now read naturally ("You were added by …",
+  "You were removed.") instead of naming you in the third person, and the join prompt works for
+  channels as well as groups.
+- A self-updater for installs that come from neither Google Play nor F-Droid. **It does nothing in
+  this build** — it is gated on the `gplay` flavor and the fork ships `foss`, so it can never offer
+  official ArcaneChat over your install.
+- Fixed the second-device QR registration layout; tidied the QR, welcome, transport and progress
+  screens.
+- Native core 2.58.0 → **2.59.0** (hidden headers removed, old broadcast-list info messages no
+  longer created, filtered reactions demoted from error to info in the device chat), plus a
+  refreshed translation set.
+
+**Build system**
+- Upstream jumped to **AGP 9.3.1 and Gradle 9.5.0**. Nothing changes for the app, but the fork's
+  disabled per-ABI `versionCode` override had to move to the new `androidComponents` API; the
+  shipped APK carries `300075301` exactly as designed.
+- Two long-standing fork patches became redundant: upstream adopted the `buildConfig` build-feature
+  fix verbatim, and removed the obsolete Jetifier, RenderScript, AIDL and legacy-support
+  dependencies on its own.
+
+**Fork reconciliation**
+- Galician was the only locale to conflict, and only because upstream retranslated the string next
+  to ours — the fork label is kept, upstream's better translation is taken.
+- The call screen's fork styling was untouched this round: upstream's call work landed in the
+  coordinator, not in the activity the fork restyles.
+
+---
+
 ## 白い熊 ArcaneChat 2.58.1+001 — 2026-08-12
 
 Built on upstream **ArcaneChat v2.58.1** (up from v2.56.0). A pure upstream sync — no new fork
