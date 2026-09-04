@@ -55,7 +55,7 @@ android {
         // stays a plain integer.
         def shiroikumaUpstreamCode = 30000753   // upstream v2.59.1
         def shiroikumaUpstreamName = "2.59.1"
-        def shiroikumaBuild = 1
+        def shiroikumaBuild = 3
 
         // NB: compute into a local first - "versionCode (a - b) * 100 + n" is parsed by Groovy as
         // the method call versionCode(a - b), which then multiplies its null return value.
