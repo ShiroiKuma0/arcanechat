@@ -9,6 +9,43 @@ so it installs side-by-side with official ArcaneChat.
 
 ---
 
+## 白い熊 ArcaneChat 2.59.1+003 — 2026-09-04
+
+Backup automation, rebuilt around the case that actually matters: **putting this app back on a
+phone that has just been wiped.**
+
+**Backups now work out of the box**
+- The **automation export switch ships ON**, and the authorization token is now **optional and off
+  by default**. A pasted secret cannot survive a wipe, so a gate that only works once the phone is
+  already set up was no gate for setting the phone up. You can still switch the token on if you
+  would rather a caller had to present one — and it is shown only when it is actually being asked
+  for, instead of sitting under an off switch inviting you to paste it somewhere it does nothing.
+- A token sent by a companion that no longer needs to send one is **ignored rather than refused**,
+  so a batch configured months ago does not half-fail for no visible reason.
+
+**Backed up *with its data*, and restored**
+- A second, **identified** door lets a companion app pull this app's whole state and put it back.
+  It does not trust a name: it checks the caller's **exact package**, cross-checks the uid the
+  kernel reports, and **pins the caller's signing certificate** — because on a wiped phone any
+  package not yet installed is a name anyone could take.
+- The backup travels through a **file descriptor the caller opens**, never a path, so it lands
+  inside the companion's own encrypted and checksummed archive rather than beside it in plaintext.
+- **Restores are accepted only through that door**, never by broadcast — an import overwrites
+  everything, and no app on the phone should be able to trigger that.
+
+**Two fixes that protect a restore you would otherwise have trusted**
+- **A restore could report success over data that never reached disk.** Settings were written
+  asynchronously, and the companion force-stops this app the moment it hears "done" — precisely so
+  a running app cannot undo the restore at shutdown. That same stop killed the write still in
+  flight, so the kill protecting the import was truncating it. Settings are now committed before
+  the restore reports success.
+- **A big backup could be declared dead while it was working.** A batch gives up on an app that
+  goes quiet for two minutes, and exporting a whole chat profile is one long silent step — so a
+  large profile could be failed mid-backup. Progress now keeps reporting through a long step, on
+  both the batch export and the new door.
+
+---
+
 ## 白い熊 ArcaneChat 2.59.1+001 — 2026-08-26
 
 Built on upstream **ArcaneChat v2.59.1** (up from v2.58.1). A pure upstream sync — no new fork

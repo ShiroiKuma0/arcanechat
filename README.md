@@ -6,11 +6,11 @@
 
 **A fully re-themeable ArcaneChat — every colour, font, and surface yours, plus automation hooks no stock messenger has.**
 
-A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, **configurable delivery ticks**, accent presets, selectable chat-list styles, full export/import of **accounts and every setting**, a **token-gated automation export** for one-command backups, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
+A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, **configurable delivery ticks**, accent presets, selectable chat-list styles, full export/import of **accounts and every setting**, **automation hooks** that let a companion app back this one up — data and all — and restore it onto a wiped phone, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
 
 Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-**📥 Latest release: [`2.59.1+001`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
+**📥 Latest release: [`2.59.1+003`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
 </div>
 
@@ -36,7 +36,13 @@ One tap saves **your accounts and every setting** — full per-account backups (
 
 ## 🤖 Backups on command — no hands, no UI
 
-An **automation export** switch (off until you turn it on) lets a companion app back this one up as part of a whole-device batch: a token-gated intent runs the very same category export **headlessly** — no window, no taps — writes **one zip** to whatever directory the caller names, and answers with the exact path, byte count, and human size. While it runs it reports **real counts** (`区分 2/4 — Accounts`, `アカウント 1/2 — you@example.org`), never a meaningless percentage. The companion can also ask what this app can export and get back the category list — with **each account offered separately**, so a batch can grab one profile instead of all of them, and with each item saying **whether it should start ticked**, so the picker reflects this app's own answer rather than a guess. A running export can be **stopped from outside**: it unwinds at the next safe boundary, deletes its half-written file, and reports that it was cancelled, so a backup you stopped never quietly finishes and lands anyway. The shared secret lives in its own device-local store, is compared in constant time, and can never appear inside a backup.
+An **automation export** switch — **on out of the box**, because the case this exists for is a phone that has just been wiped, where nothing has been configured and nobody has pasted anything — lets a companion app back this one up as part of a whole-device batch. It runs the very same category export **headlessly**: no window, no taps, **one zip** written to whatever directory the caller names, answered with the exact path, byte count, and human size. While it runs it reports **real counts** (`区分 2/4 — Accounts`, `アカウント 1/2 — you@example.org`), never a meaningless percentage — and it keeps reporting even during a single long step, so a batch never mistakes a big profile for a dead app. The companion can also ask what this app can export and get back the category list — with **each account offered separately**, so a batch can grab one profile instead of all of them, and with each item saying **whether it should start ticked**, so the picker reflects this app's own answer rather than a guess. A running export can be **stopped from outside**: it unwinds at the next safe boundary, deletes its half-written file, and reports that it was cancelled, so a backup you stopped never quietly finishes and lands anyway.
+
+An **authorization token is optional** — off by default, switchable on if you would rather a caller had to present one, and shown only when it is actually being asked for. A token sent to the app when it is not asking for one is simply ignored rather than refused, so a companion configured long ago never mysteriously fails.
+
+## 💾 Backed up *with its data* — and restored onto a wiped phone
+
+Beyond the batch export there is a second, **identified** door: a content provider a companion app can use to pull this app's whole state and put it back. It does **not** trust a name — it checks the caller's **exact package**, cross-checks the uid the kernel reports, and **pins the caller's signing certificate**, because on a freshly wiped phone any package that is not installed yet is a name anyone could take. The backup itself moves through a **file descriptor the caller opens**, never a path, so the bytes land inside the companion's own encrypted, checksummed archive rather than beside it. Restores are accepted only through this door, never by broadcast: an import overwrites everything, and that is not something any app on the phone should be able to trigger.
 
 ## 🔤 Fonts everywhere — including your own files
 
