@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.SystemClock;
 import android.provider.DocumentsContract;
 import android.util.Log;
 import androidx.annotation.NonNull;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.util.ShiroikumaExport;
 import org.thoughtcrime.securesms.util.Util;
 
@@ -32,8 +30,19 @@ import org.thoughtcrime.securesms.util.Util;
  * exports itself headlessly, reports progress with real counts, and replies with the written path
  * and size.
  *
- * <p>Three exported actions, all gated by {@link AutomationAuth} (switch first, then token — they
- * are reported as distinct errors because they debug differently):
+ * <p>Three exported actions, all gated by the single {@link AutomationAuth#refuse} check (the
+ * master switch first, then the token <b>only when 「Use authorization token?」 is on</b> — contract
+ * v2, 2026-09-04). "Automation disabled" and "bad token" stay distinct errors because they debug
+ * differently, and a token sent to an app that does not require one is <b>ignored, never
+ * refused</b>: tokens outlive the settings they were pasted for, and refusing them would turn
+ * "白い熊 turned a switch off" into "half the batch mysteriously fails".
+ *
+ * <p>Everything that moves data through a caller-supplied descriptor lives behind {@link
+ * AutomationProvider} instead, which knows who is calling. This receiver is deliberately the
+ * unauthenticated half of the surface: it only ever writes where it was told to and reports what it
+ * did.</p>
+ *
+ * <p>The three actions:
  *
  * <ul>
  *   <li><b>{@code shiroikuma.arcanechat.action.LIST_CATEGORIES}</b> — replies {@code OK:} plus one
@@ -75,14 +84,6 @@ public class StateExportReceiver extends BroadcastReceiver {
   private static final String EXTRA_REPLY_ID = "reply_id";
 
   private static final String EXTRA_RESULT = "result";
-  private static final String EXTRA_APP = "app";
-  private static final String EXTRA_TEXT = "text";
-  private static final String EXTRA_CURRENT = "current";
-  private static final String EXTRA_TOTAL = "total";
-  private static final String EXTRA_UNIT = "unit";
-
-  /** At most one progress broadcast per this many ms (the completion one always goes out). */
-  private static final long PROGRESS_INTERVAL_MS = 500;
 
   @Override
   public void onReceive(Context context, Intent intent) {
@@ -116,10 +117,11 @@ public class StateExportReceiver extends BroadcastReceiver {
         () -> {
           String result;
           try {
-            if (!AutomationAuth.isEnabled(app)) {
-              result = "ERROR:automation disabled";
-            } else if (!AutomationAuth.matches(app, token)) {
-              result = "ERROR:bad token";
+            // Contract v2: one gate, one place. A token sent to an app that is not asking for
+            // one is ignored rather than refused - see AutomationAuth.refuse().
+            String refusal = AutomationAuth.refuse(app, token);
+            if (refusal != null) {
+              result = refusal;
             } else if (ACTION_LIST_CATEGORIES.equals(action)) {
               result = listCategories(app);
             } else {
@@ -165,10 +167,9 @@ public class StateExportReceiver extends BroadcastReceiver {
     Util.runOnAnyBackgroundThread(
         () -> {
           try {
-            if (!AutomationAuth.isEnabled(app)) {
-              Log.w(TAG, "CANCEL_EXPORT ignored — automation disabled");
-            } else if (!AutomationAuth.matches(app, token)) {
-              Log.w(TAG, "CANCEL_EXPORT ignored — bad token");
+            String refusal = AutomationAuth.refuse(app, token);
+            if (refusal != null) {
+              Log.w(TAG, "CANCEL_EXPORT ignored — " + refusal);
             } else {
               boolean running = ShiroikumaExport.requestCancel();
               Log.i(
@@ -227,8 +228,12 @@ public class StateExportReceiver extends BroadcastReceiver {
 
   // --- EXPORT_STATE ---------------------------------------------------------------------------
 
-  /** The categories (and, for Accounts, the profiles) an {@code items} extra asks for. */
-  private static final class Selection {
+  /**
+   * The categories (and, for Accounts, the profiles) an {@code items} extra asks for. Package
+   * visible because {@link AutomationDataService} resolves the same {@code items} grammar for the
+   * data door — one parser, not two that drift.
+   */
+  static final class Selection {
     final List<ShiroikumaExport.Cat> cats = new ArrayList<>();
     /** null = every configured account. */
     @Nullable Set<Integer> accountIds;
@@ -270,11 +275,26 @@ public class StateExportReceiver extends BroadcastReceiver {
       if (safDir == null) return "ERROR:no-directory";
     }
 
-    ShiroikumaExport.ProgressListener progress =
+    // Closed in the finally below: it owns a heartbeat ticker, and this app's engine reports once
+    // per category and once per account - so a single large account tar would otherwise tick once
+    // and then go silent past 自由作業盤's two-minute presumed-dead rule. See AutomationProgress.
+    AutomationProgress progress =
         isEmpty(progressAction)
             ? null
-            : newProgressSender(app, progressAction, replyPackage, replyId);
+            : new AutomationProgress(app, progressAction, replyPackage, replyId);
+    try {
+      return runExportInner(app, plainDir, safDir, selection, progress);
+    } finally {
+      if (progress != null) progress.close();
+    }
+  }
 
+  private static String runExportInner(
+      Context app,
+      @Nullable File plainDir,
+      @Nullable DocumentFile safDir,
+      Selection selection,
+      @Nullable ShiroikumaExport.ProgressListener progress) {
     String name = ShiroikumaExport.exportFileName();
     long bytes;
     String writtenPath;
@@ -322,7 +342,7 @@ public class StateExportReceiver extends BroadcastReceiver {
    * {@code accounts.<id>} sub-option means exactly that profile (several may be combined, and the
    * parent wins when both are present). Absent/empty = everything.
    */
-  private static Selection parseItems(Context app, @Nullable String items) {
+  static Selection parseItems(Context app, @Nullable String items) {
     Selection selection = new Selection();
     if (isEmpty(items)) {
       for (ShiroikumaExport.Cat cat : ShiroikumaExport.Cat.values()) selection.cats.add(cat);
@@ -370,32 +390,6 @@ public class StateExportReceiver extends BroadcastReceiver {
   }
 
   // --- progress + reply -----------------------------------------------------------------------
-
-  /** Throttled progress sender; a completion event ({@code current >= total}) always goes out. */
-  private ShiroikumaExport.ProgressListener newProgressSender(
-      Context app, String progressAction, String replyPackage, String replyId) {
-    final String label = app.getString(R.string.app_name);
-    final long[] lastSent = {0};
-    return (text, current, total, unit) -> {
-      long now = SystemClock.elapsedRealtime();
-      if (current < total && now - lastSent[0] < PROGRESS_INTERVAL_MS) return;
-      lastSent[0] = now;
-      try {
-        Intent intent = new Intent(progressAction);
-        intent.setPackage(replyPackage);
-        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        intent.putExtra(EXTRA_REPLY_ID, replyId);
-        intent.putExtra(EXTRA_APP, label);
-        intent.putExtra(EXTRA_TEXT, text);
-        intent.putExtra(EXTRA_CURRENT, current);
-        intent.putExtra(EXTRA_TOTAL, total);
-        intent.putExtra(EXTRA_UNIT, unit);
-        app.sendBroadcast(intent);
-      } catch (Throwable t) {
-        Log.w(TAG, "could not send progress", t);
-      }
-    };
-  }
 
   /** The one terminal reply per request — a fresh broadcast, never a Binder. */
   private static void sendReply(

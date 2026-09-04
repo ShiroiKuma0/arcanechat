@@ -224,10 +224,16 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
   // --- automation (保存復元 contract) -------------------------------------------------------
 
   /**
-   * The two rows below Export/Import: the master switch for {@link StateExportReceiver} (default
-   * OFF) and the token row — tap copies the full token, the right-hand button regenerates it. Both
-   * are {@code persistent="false"} and stored in {@link AutomationAuth}'s own device-local prefs
-   * file, so the token never travels inside an export zip.
+   * The three rows below Export/Import (contract v2): the master switch for {@link
+   * StateExportReceiver} and the {@link org.thoughtcrime.securesms.automation.AutomationProvider}
+   * data door (default <b>ON</b>), 「Use authorization token?」 (default <b>OFF</b>), and the token row
+   * — tap copies the full token, the right-hand button regenerates it.
+   *
+   * <p>The token row is <b>shown only when the token is being asked for</b>: a 48-character secret
+   * sitting under an off switch invites 白い熊 to paste it somewhere it will do nothing.
+   *
+   * <p>All three are {@code persistent="false"} and stored in {@link AutomationAuth}'s own
+   * device-local prefs file, so the token never travels inside an export zip.
    */
   private void initializeAutomationPrefs() {
     SwitchPreferenceCompat switchPref =
@@ -243,6 +249,22 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
 
     AutomationTokenPreference tokenPref =
         (AutomationTokenPreference) findPreference("pref_automation_token");
+
+    SwitchPreferenceCompat requireTokenPref =
+        (SwitchPreferenceCompat) findPreference("pref_automation_require_token");
+    if (requireTokenPref != null) {
+      boolean required = AutomationAuth.isTokenRequired(requireContext());
+      requireTokenPref.setChecked(required);
+      if (tokenPref != null) tokenPref.setVisible(required);
+      requireTokenPref.setOnPreferenceChangeListener(
+          (p, value) -> {
+            boolean now = Boolean.TRUE.equals(value);
+            AutomationAuth.setTokenRequired(requireContext(), now);
+            if (tokenPref != null) tokenPref.setVisible(now);
+            return true;
+          });
+    }
+
     if (tokenPref == null) return;
     updateAutomationTokenRow(tokenPref);
     tokenPref.setOnPreferenceClickListener(

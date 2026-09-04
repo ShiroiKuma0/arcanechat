@@ -72,6 +72,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- shiroikuma fork: the automation data door's foreground service (contract v2 §4). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
@@ -614,6 +616,39 @@
             </intent-filter>
         </receiver>
 
+        <!-- shiroikuma fork: the automation DATA DOOR (contract v2 §2a) — 白い熊 応用管理 backs this
+             app up *with its data* and puts it back on a wiped phone.
+
+             exported="true" with no android:permission, and for a real reason: a custom permission
+             would have to be "normal" (any app may hold it) or "signature" (impossible — every app
+             in this family has its own keystore, 42 of them). Neither buys anything the caller check
+             does not. AutomationCallers verifies an EXACT package name, cross-checks the uid the
+             kernel reports, and pins the caller's signing certificate.
+
+             The payload never crosses this boundary: call() validates, hands a dup()ed descriptor
+             the CALLER opened to the foreground service below, and returns. -->
+        <provider
+            android:name=".automation.AutomationProvider"
+            android:authorities="${applicationId}.automation"
+            android:exported="true" />
+
+        <service
+            android:name=".automation.AutomationDataService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Automation data export/import" />
+        </service>
+
+        <!-- Capability discovery, readable WITHOUT waking this app — not a query intent, because a
+             frozen app (pm disable-user, which 白い熊 uses a lot) cannot be asked anything. 応用管理
+             reads these across every installed package at once with MATCH_UNINSTALLED_PACKAGES |
+             MATCH_DISABLED_COMPONENTS. An app without them is simply not offered for data backup. -->
+        <meta-data android:name="shiroikuma.automation.contract" android:value="2" />
+        <meta-data android:name="shiroikuma.automation.format" android:value="1" />
+        <meta-data android:name="shiroikuma.automation.min_format" android:value="1" />
+
         <uses-library
             android:name="com.sec.android.app.multiwindow"
             android:required="false" />
@@ -646,6 +681,11 @@
     </application>
 
     <queries>
+        <!-- shiroikuma fork (contract v2 §2a): the automation callers. Without these entries the
+             reply broadcast's setPackage() fails SILENTLY on Android 11+ — the export runs, writes
+             correctly, and is never heard of. -->
+        <package android:name="shiroikuma.oyokanri" />
+        <package android:name="shiroikuma.jiyusagyoban" />
         <intent>
             <action android:name="android.media.action.IMAGE_CAPTURE" />
         </intent>
