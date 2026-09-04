@@ -612,7 +612,16 @@ public final class ShiroikumaExport {
       }
       count++;
     }
-    ed.apply();
+    // commit(), NOT apply() - this must be on disk before importPrefs returns.
+    //
+    // The automation data door (contract v2 §2a) answers OK: as soon as the import returns, and
+    // 応用管理 force-stops this app the instant it hears that - with Process.killProcess, a SIGKILL,
+    // deliberately, so a running process cannot write its cached SharedPreferences back out at
+    // orderly shutdown and silently undo the restore it just received. A SIGKILL is equally fatal
+    // to an apply() still in flight, so the kill that protects the import would instead truncate
+    // it, and the restore would report success over keys that never reached disk. Both callers run
+    // this off the main thread, so the synchronous write costs nothing that matters.
+    ed.commit();
     return count;
   }
 
