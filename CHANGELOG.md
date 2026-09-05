@@ -9,6 +9,34 @@ so it installs side-by-side with official ArcaneChat.
 
 ---
 
+## 白い熊 ArcaneChat 2.59.2+001 — 2026-09-05
+
+Built on upstream **ArcaneChat v2.59.2** (up from v2.59.1). A pure upstream sync — no new fork
+features; all 53 customization commits were replayed onto the new release and reconciled.
+
+**What upstream brings**
+- **A playback-speed button on voice messages** — tap to speed up a long voice message instead of
+  waiting it out.
+- **Audio messages now carry their own footer inside the bubble** — timestamp and delivery status
+  sit with the player rather than below it, in the right colour for incoming and outgoing.
+- **Mini-apps open and reopen without the random long stall**, and each one now shows its own name
+  in the recent-apps switcher instead of a blank card.
+- **A crashed mini-app renderer no longer takes the app down** — WebRTC is blocked per renderer
+  rather than per app, and a renderer that dies closes only its own window.
+- **Scanning a channel invite while creating a new profile works** — the QR is honoured instead of
+  being dropped on the way through onboarding.
+- Fixed the type check on WebXDC realtime data, and refreshed the build against **compileSdk 37**
+  with newer AndroidX, Glide and Gradle plugin versions.
+
+**Fork side**
+- The build counter restarts at **+001** for the new upstream release, as the versioning scheme
+  requires: `2.59.2+001`, versionCode `300075401`.
+- Upstream rewrote the block our per-ABI versionCode override lives in for the second release
+  running, this time folding the APK file name into it. The override stays disabled — the APK still
+  carries exactly the `defaultConfig` code — and the built file now names its ABI.
+
+---
+
 ## 白い熊 ArcaneChat 2.59.1+003 — 2026-09-04
 
 Backup automation, rebuilt around the case that actually matters: **putting this app back on a
