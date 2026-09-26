@@ -9,6 +9,49 @@ so it installs side-by-side with official ArcaneChat.
 
 ---
 
+## 白い熊 ArcaneChat 2.62.0+001 — 2026-09-26
+
+Built on upstream **ArcaneChat v2.62.0** (up from v2.59.2). A pure upstream sync — no new fork
+features; all 55 customization commits were replayed onto the new release and reconciled. This is a
+large upstream jump: 822 commits, and the native core moved with it.
+
+**What upstream brings**
+- **Your messages stop depending on one relay.** New profiles are onboarded on several randomly
+  chosen relays instead of the hardcoded one, and sending picks a relay at random and retries
+  others when one fails — so a relay going down no longer stops your mail. The manual "used for
+  sending" main-relay setting is gone with it.
+- **Sent images look sharper** — the encoder keeps more quality.
+- **A video can be cancelled while it is still compressing**, instead of having to wait out a
+  re-encode you no longer want. The file-size limit is applied as-is and re-checked after encoding.
+- **An invitation link pasted into the "New Chat" search bar is offered as a link**, rather than
+  searched for as text.
+- **A group message that reached some members no longer shows the error sign** — partial delivery
+  is not a failure.
+- **The profile screen drops the verification icon and "Introduced By"** — end-to-end encryption is
+  unconditional now, so neither said anything any more. In their place, a contact who has not been
+  seen for a long time shows a freshness hint, in the contact list, the group-member list and the
+  1:1 chat subtitle.
+- **The conversation list talks to screen readers properly** — each row announces its unread, muted
+  and delivery state.
+- **Calls ask for the new local-network permission** on Android 17 before connecting.
+- Notifications stay quiet for a blocked contact's reactions and missed calls.
+- **New language: Belarusian.** Targets **Android 17 (SDK 37)**, and updates to **core 2.62.0**.
+
+**Fork side**
+- The build counter restarts at **+001** for the new upstream release, as the versioning scheme
+  requires: `2.62.0+001`, versionCode `300075501`.
+- Upstream left the per-ABI versionCode block alone for the first sync in three releases, so the
+  override needed no re-porting; the APK still carries exactly the `defaultConfig` code.
+- The contact's email row and the name long-press copy were re-established on the reworked profile
+  screen: upstream deleted the whole small-text-item family they were nested in, so they now stand
+  on their own.
+- Scrubbed `rebrand.sh` output that had been committed by accident into `values/strings.xml` on
+  2026-09-04. Those 32 strings are back to upstream's text; the rebranding is re-applied at build
+  time as it always was, and `app_name` is once again the only upstream string the base file
+  overrides.
+
+---
+
 ## 白い熊 ArcaneChat 2.59.2+001 — 2026-09-05
 
 Built on upstream **ArcaneChat v2.59.2** (up from v2.59.1). A pure upstream sync — no new fork
