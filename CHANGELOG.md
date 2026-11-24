@@ -9,6 +9,73 @@ so it installs side-by-side with official ArcaneChat.
 
 ---
 
+## 白い熊 ArcaneChat 2.69.0+002 — 2026-11-24
+
+Built on upstream **ArcaneChat v2.69.0** (up from v2.62.0), with the fork's look rebuilt on top:
+the black-yellow theme of the 白い熊 family, with every colour a settable role. All 56
+customization commits were replayed onto the new release (254 upstream commits; the native core
+moved with it). 2.69.0+001 was a test build and was not published.
+
+**What upstream brings**
+- **Messages can be pinned in a chat**, with a banner over the conversation and a system message
+  when someone unpins one.
+- **A “Sending…” notification** lets a large message go on being sent in the background.
+- **Mini-apps ask for permission per app** — camera, microphone, location, motion sensors — and
+  new apps can be attached straight from a chat's apps gallery. Message Info shows a mini-app's
+  last update time.
+- **Message Info is easier to read**, and the “View Log” screen shows a waiting dialog while the
+  log loads.
+- The relay used for sending is chosen better; the “second device added” message comes back if it
+  was deleted soon after a transfer; the app no longer registers for `mailto:` links.
+- Fixes: rotated videos keep their aspect ratio, animated WebPs stay animated, Hebrew
+  translations appear, mini-apps display properly.
+- **New languages: Maltese and Burmese.** Updates to **core 2.69.0**.
+
+**The black-yellow theme, rebuilt**
+- **114 colour roles in 16 sections** replace the dozen colours of before. Each kind of text,
+  frame, ground, icon, divider and control state has a role of its own, set on the
+  白い熊 ArcaneChat UI page in the section of its item, each with a **Default** button; **Reset all
+  colours** is in Maintenance. The colours and the accent preset set in an earlier build are
+  carried over, and the roles travel in the export.
+- **The UI page is new**: a pill that opens the app's own settings, a **chip index** of all 19
+  sections (tap to jump, long-press to drag the sections into a new order), **folding sections**
+  with coloured heading icons, action rows as pills, an icon on every row. Order and fold state
+  are remembered and exported. **Reset section order** is on the page.
+- **Every button is an outlined pill** — in screens and in every dialog, the main action with a
+  thick frame, delete actions in red. No filled and no bare-text button remains.
+- **Every switch is the outlined pill with a dot**, never filled.
+- **Every menu is a list of pill rows** with a role-coloured icon (drawn in code where upstream has
+  none), a › on rows that open something, red delete rows and an outlined switch on toggle rows.
+  The three platform context menus (relay list, account switcher, full-message view) became pill
+  popups.
+- **All settings screens** — upstream's too — draw their rows with icons and pills through one hook.
+- **Japanese for every fork string**: 99 strings, 3 lists and 130 role and section labels.
+
+**What behaves differently**
+- **The app is always dark.** The theme picker under Appearance no longer changes the look.
+- **The eight accent presets are gone**; the accent is a free colour under Foundation.
+- **Answer, Decline and Hang up are unfilled rings** in green and red.
+- **Below Android 11** the surfaces that upstream's layouts draw show the default colours only;
+  the run-time colour table needs Android 11.
+
+**Known gaps**
+- About twenty of upstream's layouts and shapes still hold a literal colour that is not fed from a
+  role; the fork's own XML shapes name a role resource instead of being drawn in code; profile
+  rows and account-switcher rows have no role icons yet.
+
+**Fork side**
+- The build counter restarted at **+001** for the new upstream release; this is `2.69.0+002`,
+  versionCode `300075802`.
+- The fork's strings left `values/strings.xml` for files of their own (`sk_strings.xml`,
+  `sk_role_strings.xml`, `sk_arrays.xml`, each with a Japanese twin), so `app_name` is the only
+  line the fork changes in a file upstream edits constantly.
+- The role table and the fork strings are generated: `tools/shiroikuma/gen_roles.py` and
+  `tools/shiroikuma/gen_strings.py`.
+- `values-night/colors.xml` is removed: a night-qualified copy of a colour beats the run-time
+  colour table.
+
+---
+
 ## 白い熊 ArcaneChat 2.62.0+001 — 2026-09-26
 
 Built on upstream **ArcaneChat v2.62.0** (up from v2.59.2). A pure upstream sync — no new fork

@@ -6,11 +6,11 @@
 
 **A fully re-themeable ArcaneChat — every colour, font, and surface yours, plus automation hooks no stock messenger has.**
 
-A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: per-surface configurable colours and fonts, **configurable delivery ticks**, accent presets, selectable chat-list styles, full export/import of **accounts and every setting**, **automation hooks** that let a companion app back this one up — data and all — and restore it onto a wiped phone, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
+A fork of [ArcaneChat for Android](https://github.com/ArcaneChat/android) with **major additions**: the **black-yellow theme** of the 白い熊 family with **114 settable colour roles**, pill buttons, pill menus and outlined switches throughout, per-surface fonts, **configurable delivery ticks**, selectable chat-list styles, full export/import of **accounts and every setting**, **automation hooks** that let a companion app back this one up — data and all — and restore it onto a wiped phone, a companion-app "protected contacts" privacy channel, and profile copy conveniences.
 
 Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanechat`).
 
-**📥 Latest release: [`2.62.0+001`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
+**📥 Latest release: [`2.69.0+002`](https://github.com/ShiroiKuma0/arcanechat/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/arcanechat/releases)
 
 </div>
 
@@ -18,7 +18,13 @@ Installs **side-by-side** with official ArcaneChat (app id `shiroikuma.arcanecha
 
 ## 🎨 Every surface, your colours
 
-A dedicated **白い熊 ArcaneChat UI** settings page (reachable from the chat-list menu, Settings, or a **long-press on the toolbar's ⋮ button**) controls the app's whole look: message text, bubble fill, and bubble border — each split into **incoming and outgoing** — conversation background, chat-list title / preview / date, and the new-chat button, all picked with a live RGB/hex colour picker. Defaults reproduce the fork's signature **yellow-on-black** palette; one **Reset** restores it.
+A dedicated **白い熊 ArcaneChat UI** settings page (reachable from the chat-list menu, Settings, or a **long-press on the toolbar's ⋮ button**) controls the app's whole look through **114 colour roles in 16 sections**: every kind of text, frame, ground, icon, divider and control state has a role of its own — buttons, dialogs, switches, menus, lists, bars, message bubbles (incoming and outgoing apart), the chat list, the call screen — each picked with a live RGB/hex colour picker and each with its own **Default** button. Defaults are the fork's signature **yellow-on-black**; **Reset all colours** restores them.
+
+The page itself is built to be found in: a **chip index** of its sections on top (tap to jump, long-press to drag the sections into your own order), **folding sections** with coloured icons, and a pill that opens the app's own settings.
+
+## 💊 Pills everywhere
+
+Every button in the app is an **outlined pill** — never filled, the main action with a thick frame, delete actions in red — in screens and in every dialog. Every switch is an outlined pill with a dot. Every menu, from the toolbar's ⋮ to a long-press, is a list of **pill rows with a coloured icon**, a › where a row opens something, and an outlined switch on toggle rows.
 
 The palette is disciplined: black is **`#000000`** on every surface — toolbars, dialogs, the compose bar, date pills, the scroll-to-bottom button — never a near-black that reads greenish next to the yellow, and yellow is **`#FFFF00`**, never amber. Every dialog in the app carries the accent border, including ones deep inside stock ArcaneChat.
 
@@ -48,15 +54,15 @@ Beyond the batch export there is a second, **identified** door: a content provid
 
 Independent font **family, weight, and size** per text surface: chat messages, the conversation title, chat-list titles / previews / dates, and the entire Settings UI. Beyond the system families, pick any **`.ttf`/`.otf` file** from storage and it appears in every font list — sizes go up to 300 sp for true large-print use, and chat-list rows grow to fit.
 
-## ✨ Accent presets & chat-list styles
+## ✨ Chat-list styles
 
-Eight one-tap **accent presets** (yellow, white, cyan, green, orange, red, magenta, blue) drive ripples, switches, dialogs, popup menus, the compose bar, and document chips together. The chat list itself has **six selectable row styles** — rounded cards, filled cards, accent bar, dividers, inset dividers, or plain.
+The chat list has **six selectable row styles** — rounded cards, filled cards, accent bar, dividers, inset dividers, or plain.
 
 ## 📞 In-call controls that match the app
 
-The call screen wears the same palette as everything else: mute, camera, speaker, and switch-camera are **black discs with an accent border and an accent glyph** instead of stock's gray-on-white circles — and they follow the accent preset like every other surface. Hang up stays unmistakably **red**. The speaker button is a plain **speaker ⇄ earpiece toggle** now, one tap per flip, with the full audio-device picker still one **long press** away for a bluetooth or wired headset.
+The call screen wears the same palette as everything else: mute, camera, speaker, and switch-camera are **black discs with an accent border and an accent glyph** instead of stock's gray-on-white circles — each a colour role like every other surface. Hang up is an unmistakable **red ring**. The speaker button is a plain **speaker ⇄ earpiece toggle** now, one tap per flip, with the full audio-device picker still one **long press** away for a bluetooth or wired headset.
 
-An incoming call matches: the caller's avatar sits in an **accent ring**, and the Audio / Video answer-mode chips are black with an accent border, the chosen one filling **solid accent with a black label** — no washed-out half-transparent state. Answer and Decline keep their **green and red**, because accept and reject should never need a second look.
+An incoming call matches: the caller's avatar sits in an **accent ring**, and the Audio / Video answer-mode chips are black with an accent border, the chosen one filling **solid accent with a black label** — no washed-out half-transparent state. Answer and Decline are unfilled rings in **green and red**, because accept and reject should never need a second look.
 
 ## 🛡️ Protected contacts (companion automation)
 
