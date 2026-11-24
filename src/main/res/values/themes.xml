@@ -193,12 +193,12 @@
         <!-- shiroikuma fork (step 1): bubble fill colour set to white so the PorterDuff.MULTIPLY
              tint in ConversationItem is an identity op, letting the bubble drawable render its own
              black fill + yellow border. Message text is yellow. -->
-        <item name="conversation_item_incoming_bubble_color">@color/white</item>
+        <item name="conversation_item_incoming_bubble_color">@color/sk_identity_white</item>
         <!-- <item name="conversation_item_incoming_bubble_border_color">#80414347</item> -->
         <item name="conversation_item_incoming_text_primary_color">@color/def_text</item>
         <item name="conversation_item_incoming_text_secondary_color">@color/def_text</item>
 
-        <item name="conversation_item_outgoing_bubble_color">@color/white</item>
+        <item name="conversation_item_outgoing_bubble_color">@color/sk_identity_white</item>
         <!-- <item name="conversation_item_outgoing_bubble_border_color">#80364e59</item> -->
         <item name="conversation_item_outgoing_text_primary_color">@color/def_text</item>
         <item name="conversation_item_outgoing_text_secondary_color">@color/def_text</item>

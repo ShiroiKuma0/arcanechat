@@ -5,7 +5,7 @@
      its red FAB. -->
 <ripple
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="?attr/colorAccent">
+    android:color="@color/sk_role_call_ring">
     <item android:id="@android:id/mask">
         <shape android:shape="oval">
             <solid android:color="@android:color/white" />
@@ -13,8 +13,8 @@
     </item>
     <item>
         <shape android:shape="oval">
-            <solid android:color="#000000" />
-            <stroke android:width="2dp" android:color="?attr/colorAccent" />
+            <solid android:color="@color/sk_role_call_ground" />
+            <stroke android:width="2dp" android:color="@color/sk_role_call_ring" />
         </shape>
     </item>
 </ripple>

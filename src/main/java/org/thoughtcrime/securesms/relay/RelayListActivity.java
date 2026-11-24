@@ -173,9 +173,14 @@ public class RelayListActivity extends BaseActionBarActivity
   @Override
   public void onRelayLongClick(View view, EnteredLoginParam relay) {
     contextMenuRelay = relay;
-    registerForContextMenu(view);
-    openContextMenu(view);
-    unregisterForContextMenu(view);
+    // shiroikuma fork: a pill menu instead of the platform's context menu, whose rows no app
+    // code can draw.
+    org.thoughtcrime.securesms.shiroikuma.SkPopupMenu popup =
+        new org.thoughtcrime.securesms.shiroikuma.SkPopupMenu(this, view);
+    popup.getMenuInflater().inflate(R.menu.relay_item_context, popup.getMenu());
+    popup.getMenu().findItem(R.id.menu_delete_relay).setVisible(adapter.getItemCount() > 1);
+    popup.setOnMenuItemClickListener(this::onContextItemSelected);
+    popup.show();
   }
 
   @Override

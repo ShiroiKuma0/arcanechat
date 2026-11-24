@@ -361,7 +361,7 @@ public class ConversationListItem extends RelativeLayout
               .beginConfig()
               .width(ViewUtil.dpToPx(getContext(), 24))
               .height(ViewUtil.dpToPx(getContext(), 24))
-              .textColor(lum > 0.6 ? Color.BLACK : Color.WHITE)
+              .textColor(org.thoughtcrime.securesms.shiroikuma.SkRoles.inkOn(getContext(), color))
               .bold()
               .endConfig()
               .buildRound(badgeText, color));
@@ -378,37 +378,10 @@ public class ConversationListItem extends RelativeLayout
     // shiroikuma fork (Step 6/7): chat-list row style.
     String style = Prefs.getChatListStyle(getContext());
 
-    Integer styleDrawable = null;
-    switch (style) {
-      case Prefs.CHATLIST_CARDS:
-        styleDrawable =
-            pinned
-                ? R.drawable.pinned_list_item_card_background
-                : R.drawable.conversation_list_item_card_background;
-        break;
-      case Prefs.CHATLIST_FILLED:
-        styleDrawable =
-            pinned
-                ? R.drawable.pinned_list_item_card_filled_background
-                : R.drawable.conversation_list_item_card_filled_background;
-        break;
-      case Prefs.CHATLIST_ACCENTBAR:
-        styleDrawable =
-            pinned
-                ? R.drawable.pinned_list_item_accentbar_background
-                : R.drawable.conversation_list_item_accentbar_background;
-        break;
-      default: // dividers, inset, plain -> original (non-card) themed background
-        break;
-    }
-    if (styleDrawable != null) {
-      ViewUtil.setBackground(this, getContext().getDrawable(styleDrawable));
-    } else {
-      int bg = pinned ? R.attr.pinned_list_item_background : R.attr.conversation_list_item_background;
-      try (TypedArray ta = getContext().obtainStyledAttributes(new int[] {bg})) {
-        ViewUtil.setBackground(this, ta.getDrawable(0));
-      }
-    }
+    // Built in code from the colour roles (row ground, frame, filled-card ground, pinned ground,
+    // selection) - no drawable holds a colour.
+    ViewUtil.setBackground(
+        this, org.thoughtcrime.securesms.shiroikuma.SkShapes.chatRow(getContext(), style, pinned));
 
     // Boxed styles (cards, filled) get a gap between rows; the flush styles sit edge to edge.
     boolean boxed = Prefs.CHATLIST_CARDS.equals(style) || Prefs.CHATLIST_FILLED.equals(style);
@@ -431,10 +404,12 @@ public class ConversationListItem extends RelativeLayout
         divider.setVisibility(View.VISIBLE);
         boolean accentLine =
             Prefs.CHATLIST_DIVIDERS.equals(style) || Prefs.CHATLIST_INSET.equals(style);
-        int attr = accentLine ? R.attr.colorAccent : R.attr.conversation_list_item_divider;
-        try (TypedArray ta = getContext().obtainStyledAttributes(new int[] {attr})) {
-          divider.setBackgroundColor(ta.getColor(0, 0));
-        }
+        divider.setBackgroundColor(
+            org.thoughtcrime.securesms.shiroikuma.SkRoles.get(
+                getContext(),
+                accentLine
+                    ? org.thoughtcrime.securesms.shiroikuma.SkRole.CARD_FRAME
+                    : org.thoughtcrime.securesms.shiroikuma.SkRole.LIST_DIVIDER));
         if (divider.getLayoutParams() instanceof android.view.ViewGroup.MarginLayoutParams) {
           android.view.ViewGroup.MarginLayoutParams dlp =
               (android.view.ViewGroup.MarginLayoutParams) divider.getLayoutParams();

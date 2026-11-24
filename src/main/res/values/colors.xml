@@ -12,13 +12,6 @@
     <!-- shiroikuma fork (Step 4b): accent preset palette (drives colorAccent + control attrs +
          popup border/text via the ThemeOverlay.Shiroikuma.Accent.* overlays). -->
     <color name="acc_yellow">#FFFF00</color>
-    <color name="acc_white">#FFFFFF</color>
-    <color name="acc_cyan">#00E5FF</color>
-    <color name="acc_green">#00E676</color>
-    <color name="acc_orange">#FF9100</color>
-    <color name="acc_red">#FF1744</color>
-    <color name="acc_magenta">#FF44FF</color>
-    <color name="acc_blue">#448AFF</color>
     <!-- shiroikuma fork (Step 7): subtle fill for the "Filled card" chat-list style.
          Pure #FFFF00 at 12% alpha - was #FFEA00 (amber), the fork's yellow is never amber. -->
     <color name="card_fill_tint">#1FFFFF00</color>

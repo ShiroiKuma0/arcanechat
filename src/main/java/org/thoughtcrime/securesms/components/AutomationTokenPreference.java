@@ -38,6 +38,9 @@ public class AutomationTokenPreference extends Preference {
     super.onBindViewHolder(holder);
     View button = holder.findViewById(R.id.automation_regenerate);
     if (button == null) return;
+    if (button instanceof android.widget.TextView) {
+      org.thoughtcrime.securesms.shiroikuma.SkPills.button((android.widget.TextView) button, false, false);
+    }
     // the button consumes the touch, so tapping it does not also fire the row's copy action
     button.setOnClickListener(
         v -> {

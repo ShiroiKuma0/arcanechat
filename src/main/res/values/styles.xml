@@ -9,79 +9,34 @@
     </style>
 
     <!-- shiroikuma fork: Theme.AppCompat.Dialog.Alert REDEFINES colorAccent to Material teal
-         (#80CBC4). dialog_yellow_border strokes with ?attr/colorAccent, so every AlertDialog in
-         the app was drawing a teal border and teal buttons instead of the fork's yellow. Pinning
-         the three control attrs here fixes the default; the per-accent subclasses below are wired
-         into each ThemeOverlay.Shiroikuma.Accent.* via alertDialogTheme so the border, buttons and
-         dialog text keep tracking the chosen accent preset. -->
+         (#80CBC4) and its text colours to white, so every colour a dialog resolves is named
+         here as a colour role; shiroikuma/SkPalette feeds the stored values at run time. The
+         window ground is a shape the platform reads from the theme. -->
     <style
         name="AppCompatAlertDialogStyleDark"
         parent="Theme.AppCompat.Dialog.Alert">
-        <item name="android:windowBackground">@drawable/dialog_yellow_border</item>
+        <item name="android:windowBackground">@drawable/sk_dialog_panel</item>
         <item name="buttonBarPositiveButtonStyle">@style/AlertDialogButton</item>
         <item name="buttonBarNegativeButtonStyle">@style/AlertDialogButton</item>
         <item name="buttonBarNeutralButtonStyle">@style/AlertDialogButton</item>
-        <item name="colorAccent">@color/def_accent</item>
-        <item name="colorControlActivated">@color/def_accent</item>
-        <item name="colorControlHighlight">@color/def_accent</item>
-        <item name="android:textColor">?attr/colorAccent</item>
-        <item name="android:textColorPrimary">?attr/colorAccent</item>
-        <item name="android:textColorSecondary">?attr/colorAccent</item>
-        <!-- AppCompat resolves single/multi-choice list rows from its own attr, not from
-             textColorPrimary - without this the ListPreference dialogs (accent, chat-list style)
-             keep drawing their items in white. -->
-        <item name="textColorAlertDialogListItem">?attr/colorAccent</item>
+        <item name="colorAccent">@color/sk_role_accent</item>
+        <item name="colorControlActivated">@color/sk_role_check_on</item>
+        <item name="colorControlNormal">@color/sk_role_check_off</item>
+        <item name="colorControlHighlight">@color/sk_role_selection</item>
+        <item name="android:textColor">@color/sk_role_dialog_text</item>
+        <item name="android:textColorPrimary">@color/sk_role_dialog_text</item>
+        <item name="android:textColorSecondary">@color/sk_role_dialog_text</item>
+        <item name="android:textColorHint">@color/sk_role_field_hint</item>
+        <item name="textColorAlertDialogListItem">@color/sk_role_dialog_text</item>
+        <item name="viewInflaterClass">org.thoughtcrime.securesms.shiroikuma.SkViewInflater</item>
     </style>
 
-    <!-- One per accent preset; referenced from the matching accent overlay. Explicit parent= on
-         every dotted name (build trap #7). -->
-    <style name="AppCompatAlertDialogStyleDark.Yellow" parent="AppCompatAlertDialogStyleDark">
-        <item name="colorAccent">@color/acc_yellow</item>
-        <item name="colorControlActivated">@color/acc_yellow</item>
-        <item name="colorControlHighlight">@color/acc_yellow</item>
-    </style>
-    <style name="AppCompatAlertDialogStyleDark.White" parent="AppCompatAlertDialogStyleDark">
-        <item name="colorAccent">@color/acc_white</item>
-        <item name="colorControlActivated">@color/acc_white</item>
-        <item name="colorControlHighlight">@color/acc_white</item>
-    </style>
-    <style name="AppCompatAlertDialogStyleDark.Cyan" parent="AppCompatAlertDialogStyleDark">
-        <item name="colorAccent">@color/acc_cyan</item>
-        <item name="colorControlActivated">@color/acc_cyan</item>
-        <item name="colorControlHighlight">@color/acc_cyan</item>
-    </style>
-    <style name="AppCompatAlertDialogStyleDark.Green" parent="AppCompatAlertDialogStyleDark">
-        <item name="colorAccent">@color/acc_green</item>
-        <item name="colorControlActivated">@color/acc_green</item>
-        <item name="colorControlHighlight">@color/acc_green</item>
-    </style>
-    <style name="AppCompatAlertDialogStyleDark.Orange" parent="AppCompatAlertDialogStyleDark">
-        <item name="colorAccent">@color/acc_orange</item>
-        <item name="colorControlActivated">@color/acc_orange</item>
-        <item name="colorControlHighlight">@color/acc_orange</item>
-    </style>
-    <style name="AppCompatAlertDialogStyleDark.Red" parent="AppCompatAlertDialogStyleDark">
-        <item name="colorAccent">@color/acc_red</item>
-        <item name="colorControlActivated">@color/acc_red</item>
-        <item name="colorControlHighlight">@color/acc_red</item>
-    </style>
-    <style name="AppCompatAlertDialogStyleDark.Magenta" parent="AppCompatAlertDialogStyleDark">
-        <item name="colorAccent">@color/acc_magenta</item>
-        <item name="colorControlActivated">@color/acc_magenta</item>
-        <item name="colorControlHighlight">@color/acc_magenta</item>
-    </style>
-    <style name="AppCompatAlertDialogStyleDark.Blue" parent="AppCompatAlertDialogStyleDark">
-        <item name="colorAccent">@color/acc_blue</item>
-        <item name="colorControlActivated">@color/acc_blue</item>
-        <item name="colorControlHighlight">@color/acc_blue</item>
-    </style>
 
     <style
         name="AlertDialogButton"
         parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
-        <!-- shiroikuma fork: ?attr so the buttons follow the dialog theme's (now correct) accent
-             instead of being pinned to the default yellow. -->
-        <item name="android:textColor">?attr/colorAccent</item>
+        <!-- shiroikuma fork: restyled as an outlined pill by shiroikuma/SkViewInflater. -->
+        <item name="android:textColor">@color/sk_role_dialog_button_text</item>
     </style>
 
     <style
@@ -100,15 +55,15 @@
         parent="@style/Widget.AppCompat.ActionBar">
         <!-- shiroikuma fork: pure #000000, never gray95 (#111111) - it reads as a greenish/grayish
              block next to the yellow. Every black surface in the dark theme is @color/black. -->
-        <item name="background">@color/black</item>
+        <item name="background">@color/sk_role_topbar_ground</item>
         <item name="elevation">4dp</item>
         <item name="popupTheme">@style/ThemeOverlay.AppCompat.Dark</item>
         <item name="titleTextStyle">@style/TextSecure.TitleTextStyle</item>
         <item name="subtitleTextStyle">@style/TextSecure.SubtitleTextStyle</item>
         <!-- shiroikuma fork: toolbar icons (overflow, nav) follow the accent; this style is
              also applied as the toolbar android:theme, where these attrs drive icon tint. -->
-        <item name="android:textColorSecondary">?attr/colorAccent</item>
-        <item name="colorControlNormal">?attr/colorAccent</item>
+        <item name="android:textColorSecondary">@color/sk_role_topbar_icon</item>
+        <item name="colorControlNormal">@color/sk_role_topbar_icon</item>
     </style>
 
     <style
@@ -126,8 +81,8 @@
     <style
         name="TextSecure.DarkActionBar.TabBar"
         parent="@style/Widget.AppCompat.ActionBar.TabBar">
-        <item name="background">@color/black</item>
-        <item name="android:background">@color/black</item>
+        <item name="background">@color/sk_role_topbar_ground</item>
+        <item name="android:background">@color/sk_role_topbar_ground</item>
         <item name="elevation">4dp</item>
     </style>
 
@@ -145,7 +100,7 @@
         name="TextSecure.TitleTextStyle"
         parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
         <!-- shiroikuma fork: toolbar title/subtitle track the accent (default yellow). -->
-        <item name="android:textColor">?attr/colorAccent</item>
+        <item name="android:textColor">@color/sk_role_topbar_title</item>
         <item name="android:textColorHint">#BFffffff</item>
         <item name="android:textSize">20dp</item>
     </style>
@@ -153,7 +108,7 @@
     <style
         name="TextSecure.SubtitleTextStyle"
         parent="TextAppearance.AppCompat.Widget.ActionBar.Subtitle">
-        <item name="android:textColor">?attr/colorAccent</item>
+        <item name="android:textColor">@color/sk_role_topbar_title</item>
     </style>
 
 
@@ -393,67 +348,15 @@
         <item name="popupMenuStyle">@style/Widget.Shiroikuma.PopupMenu</item>
         <item name="android:popupMenuStyle">@style/Widget.Shiroikuma.PopupMenu</item>
         <item name="actionOverflowMenuStyle">@style/Widget.Shiroikuma.PopupMenu.Overflow</item>
-        <item name="android:colorBackground">#000000</item>
-        <item name="android:textColorPrimary">?attr/colorAccent</item>
+        <item name="android:colorBackground">@color/sk_role_menu_ground</item>
+        <item name="android:textColorPrimary">@color/sk_role_menu_label</item>
     </style>
     <style name="Widget.Shiroikuma.PopupMenu" parent="@style/Widget.AppCompat.PopupMenu">
-        <item name="android:popupBackground">@drawable/dialog_yellow_border</item>
+        <item name="android:popupBackground">@drawable/sk_menu_panel</item>
     </style>
     <style name="Widget.Shiroikuma.PopupMenu.Overflow" parent="@style/Widget.AppCompat.PopupMenu.Overflow">
-        <item name="android:popupBackground">@drawable/dialog_yellow_border</item>
+        <item name="android:popupBackground">@drawable/sk_menu_panel</item>
         <item name="overlapAnchor">false</item>
     </style>
 
-    <!-- shiroikuma fork (Step 4b): accent presets. Each is a theme overlay applied at activity
-         creation (DynamicTheme) on top of the base theme. Setting the three control attrs is enough
-         because the popup border (dialog_yellow_border) and popup text both reference
-         ?attr/colorAccent, so they follow the chosen accent automatically. -->
-    <style name="ThemeOverlay.Shiroikuma.Accent.Yellow" parent="">
-        <item name="colorAccent">@color/acc_yellow</item>
-        <item name="colorControlActivated">@color/acc_yellow</item>
-        <item name="colorControlHighlight">@color/acc_yellow</item>
-        <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark.Yellow</item>
-    </style>
-    <style name="ThemeOverlay.Shiroikuma.Accent.White" parent="">
-        <item name="colorAccent">@color/acc_white</item>
-        <item name="colorControlActivated">@color/acc_white</item>
-        <item name="colorControlHighlight">@color/acc_white</item>
-        <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark.White</item>
-    </style>
-    <style name="ThemeOverlay.Shiroikuma.Accent.Cyan" parent="">
-        <item name="colorAccent">@color/acc_cyan</item>
-        <item name="colorControlActivated">@color/acc_cyan</item>
-        <item name="colorControlHighlight">@color/acc_cyan</item>
-        <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark.Cyan</item>
-    </style>
-    <style name="ThemeOverlay.Shiroikuma.Accent.Green" parent="">
-        <item name="colorAccent">@color/acc_green</item>
-        <item name="colorControlActivated">@color/acc_green</item>
-        <item name="colorControlHighlight">@color/acc_green</item>
-        <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark.Green</item>
-    </style>
-    <style name="ThemeOverlay.Shiroikuma.Accent.Orange" parent="">
-        <item name="colorAccent">@color/acc_orange</item>
-        <item name="colorControlActivated">@color/acc_orange</item>
-        <item name="colorControlHighlight">@color/acc_orange</item>
-        <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark.Orange</item>
-    </style>
-    <style name="ThemeOverlay.Shiroikuma.Accent.Red" parent="">
-        <item name="colorAccent">@color/acc_red</item>
-        <item name="colorControlActivated">@color/acc_red</item>
-        <item name="colorControlHighlight">@color/acc_red</item>
-        <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark.Red</item>
-    </style>
-    <style name="ThemeOverlay.Shiroikuma.Accent.Magenta" parent="">
-        <item name="colorAccent">@color/acc_magenta</item>
-        <item name="colorControlActivated">@color/acc_magenta</item>
-        <item name="colorControlHighlight">@color/acc_magenta</item>
-        <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark.Magenta</item>
-    </style>
-    <style name="ThemeOverlay.Shiroikuma.Accent.Blue" parent="">
-        <item name="colorAccent">@color/acc_blue</item>
-        <item name="colorControlActivated">@color/acc_blue</item>
-        <item name="colorControlHighlight">@color/acc_blue</item>
-        <item name="alertDialogTheme">@style/AppCompatAlertDialogStyleDark.Blue</item>
-    </style>
 </resources>

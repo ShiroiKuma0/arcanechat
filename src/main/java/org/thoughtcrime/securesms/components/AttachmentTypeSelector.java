@@ -79,6 +79,21 @@ public class AttachmentTypeSelector extends PopupWindow {
     this.locationButton = ViewUtil.findById(layout, R.id.location_button);
     this.webxdcButton = ViewUtil.findById(layout, R.id.webxdc_button);
 
+    // shiroikuma fork: every tile a ring round a bare glyph, in the colour of what it attaches -
+    // never a filled disc.
+    org.thoughtcrime.securesms.shiroikuma.SkPills.tile(
+        imageButton, org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.VIEW);
+    org.thoughtcrime.securesms.shiroikuma.SkPills.tile(
+        documentButton, org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.SHARE);
+    org.thoughtcrime.securesms.shiroikuma.SkPills.tile(
+        contactButton, org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.CONTACT);
+    org.thoughtcrime.securesms.shiroikuma.SkPills.tile(
+        videoButton, org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.MESSAGE);
+    org.thoughtcrime.securesms.shiroikuma.SkPills.tile(
+        locationButton, org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.VIEW);
+    org.thoughtcrime.securesms.shiroikuma.SkPills.tile(
+        webxdcButton, org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.CONNECT);
+
     this.imageButton.setOnClickListener(new PropagatingClickListener(ADD_GALLERY));
     this.documentButton.setOnClickListener(new PropagatingClickListener(ADD_DOCUMENT));
     this.contactButton.setOnClickListener(new PropagatingClickListener(ADD_CONTACT_INFO));

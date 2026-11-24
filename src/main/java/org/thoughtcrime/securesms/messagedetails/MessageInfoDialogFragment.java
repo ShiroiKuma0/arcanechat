@@ -11,7 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.PopupMenu;
+import androidx.appcompat.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -234,8 +234,9 @@ public class MessageInfoDialogFragment extends DialogFragment
   }
 
   private void showDeveloperMenu(View anchor) {
-    PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
-    popup.getMenu().add(R.string.global_menu_view_developer_desktop);
+    PopupMenu popup =
+        new org.thoughtcrime.securesms.shiroikuma.SkPopupMenu(anchor.getContext(), anchor);
+    popup.getMenu().add(0, R.id.sk_menu_details, 0, R.string.global_menu_view_developer_desktop);
     popup.setOnMenuItemClickListener(
         item -> {
           showDeveloperView();

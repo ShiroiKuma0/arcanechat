@@ -26,81 +26,40 @@ public class DynamicTheme {
   private int currentAccent;
 
   public void onCreate(Activity activity) {
-    // boolean wasDarkTheme = isDarkTheme;
-
+    // shiroikuma fork: the black-yellow theme applies always, whatever the theme picker says -
+    // the dark theme as the base, the colour roles laid over it. The palette goes onto the
+    // activity's resources before anything is resolved from them (below Android 10 this is the
+    // only hook that runs early enough).
+    org.thoughtcrime.securesms.shiroikuma.SkPalette.apply(activity);
     currentTheme = getSelectedTheme(activity);
-    // isDarkTheme  = isDarkTheme(activity);
-
     activity.setTheme(currentTheme);
-
-    // shiroikuma fork (Step 4b): layer the chosen accent preset on top of the base theme. This
-    // sets colorAccent + control attrs; the popup border/text follow via ?attr/colorAccent.
     currentAccent = getAccentOverlay(activity);
     activity.getTheme().applyStyle(currentAccent, true);
-
-    // In case you introduce a CachedInflater and there are problems with the dark mode, uncomment
-    // this line and the line in onResume():
-    // if (isDarkTheme != wasDarkTheme) {
-    // CachedInflater.from(activity).clear();
-    // }
   }
 
   public void onResume(Activity activity) {
-    if (currentTheme != getSelectedTheme(activity)
-        || currentAccent != getAccentOverlay(activity)) {
+    if (currentTheme != getSelectedTheme(activity)) {
       Intent intent = activity.getIntent();
       activity.finish();
       OverridePendingTransition.invoke(activity);
       activity.startActivity(intent);
       OverridePendingTransition.invoke(activity);
-      // CachedInflater.from(activity).clear();
     }
   }
 
-  // shiroikuma fork (Step 4b): map the stored accent preset key to its overlay style.
+  // shiroikuma fork: the overlay that points every colour attribute at a colour role. (It was a
+  // set of eight accent presets until the roles replaced them; the name is kept for its callers.)
   public static @StyleRes int getAccentOverlay(Context context) {
-    switch (Prefs.getAccent(context)) {
-      case "white":
-        return R.style.ThemeOverlay_Shiroikuma_Accent_White;
-      case "cyan":
-        return R.style.ThemeOverlay_Shiroikuma_Accent_Cyan;
-      case "green":
-        return R.style.ThemeOverlay_Shiroikuma_Accent_Green;
-      case "orange":
-        return R.style.ThemeOverlay_Shiroikuma_Accent_Orange;
-      case "red":
-        return R.style.ThemeOverlay_Shiroikuma_Accent_Red;
-      case "magenta":
-        return R.style.ThemeOverlay_Shiroikuma_Accent_Magenta;
-      case "blue":
-        return R.style.ThemeOverlay_Shiroikuma_Accent_Blue;
-      case "yellow":
-      default:
-        return R.style.ThemeOverlay_Shiroikuma_Accent_Yellow;
-    }
+    return R.style.ThemeOverlay_Sk;
   }
 
   public static void setDefaultDayNightMode(@NonNull Context context) {
-    String theme = Prefs.getTheme(context);
-
-    if (!theme.equals(LIGHT) && !theme.equals(DARK)) {
-      AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-    } else if (DynamicTheme.isDarkTheme(context)) {
-      AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-    } else {
-      AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-    }
-
-    // CachedInflater.from(context).clear();
+    // shiroikuma fork: always dark - the black-yellow theme has no light form.
+    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
   }
 
   private @StyleRes int getSelectedTheme(Activity activity) {
-    String theme = Prefs.getTheme(activity);
-    if (isDarkTheme(activity)) {
-      return getDarkThemeStyle(theme);
-    } else {
-      return getLightThemeStyle(theme);
-    }
+    return getDarkThemeStyle(DARK);
   }
 
   protected @StyleRes int getLightThemeStyle(@NonNull String theme) {
@@ -127,15 +86,9 @@ public class DynamicTheme {
     return Build.VERSION.SDK_INT >= 29;
   }
 
-  /** Takes the system theme into account. */
+  /** shiroikuma fork: always dark. */
   public static boolean isDarkTheme(@NonNull Context context) {
-    String theme = Prefs.getTheme(context);
-
-    if (!theme.equals(DARK) && !theme.equals(LIGHT) && systemThemeAvailable()) {
-      return isSystemInDarkTheme(context);
-    } else {
-      return theme.equals(DARK);
-    }
+    return true;
   }
 
   // return a checkmark emoji that fits to the background of the selected theme.

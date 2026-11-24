@@ -73,7 +73,7 @@
                 android:paddingRight="6dp"
                 android:background="@drawable/touch_highlight_background"
                 android:src="@drawable/ic_attach_white_24dp"
-                android:tint="?attr/colorAccent"
+                android:tint="@color/sk_role_compose_icon"
                 android:contentDescription="@string/menu_add_attachment" />
 
             <org.thoughtcrime.securesms.components.emoji.EmojiToggle
@@ -84,7 +84,7 @@
                 android:minHeight="40dp"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:tint="?attr/colorAccent"
+                android:tint="@color/sk_role_compose_icon"
                 android:background="@drawable/circle_touch_highlight_background"
                 android:contentDescription="@string/menu_toggle_keyboard" />
 
@@ -117,7 +117,7 @@
                     android:layout_height="match_parent"
                     android:layout_gravity="center_vertical"
                     android:src="?quick_camera_icon"
-                    android:tint="?attr/colorAccent"
+                    android:tint="@color/sk_role_compose_icon"
                     android:paddingLeft="8dp"
                     android:paddingRight="8dp"
                     android:paddingTop="6dp"
@@ -165,7 +165,7 @@
             android:layout_gravity="center"
             android:background="@drawable/circle_touch_highlight_background"
             android:src="@drawable/ic_attach_white_24dp"
-            android:tint="?attr/colorAccent"
+            android:tint="@color/sk_role_compose_icon"
             android:contentDescription="@string/menu_add_attachment"
             android:nextFocusLeft="@+id/embedded_text_editor" />
 
@@ -180,7 +180,7 @@
             android:scaleType="fitCenter"
             android:contentDescription="@string/menu_send"
             android:nextFocusLeft="@+id/embedded_text_editor"
-            android:tint="?attr/colorAccent"
+            android:tint="@color/sk_role_send_glyph"
             android:background="@drawable/circle_touch_highlight_background" />
 
     </org.thoughtcrime.securesms.components.AnimatingToggle>

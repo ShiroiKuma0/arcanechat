@@ -106,6 +106,24 @@ public class AccountSelectionListFragment extends DialogFragment
     adapter.changeData(ids, accounts.getSelectedAccount().getAccountId());
   }
 
+  /** shiroikuma fork: the long-press menu of a profile row, as a pill menu. */
+  public void showAccountMenu(@NonNull AccountSelectionListItem listItem) {
+    if (selectOnly || getActivity() == null) return;
+    final int accountId = listItem.getAccountId();
+    org.thoughtcrime.securesms.shiroikuma.SkPopupMenu popup =
+        new org.thoughtcrime.securesms.shiroikuma.SkPopupMenu(listItem.getContext(), listItem);
+    popup.getMenuInflater().inflate(R.menu.account_item_context, popup.getMenu());
+    if (DcHelper.getAccounts(requireActivity()).getAccount(accountId).isMuted()) {
+      popup.getMenu().findItem(R.id.menu_mute_notifications).setTitle(R.string.menu_unmute);
+    }
+    popup.setOnMenuItemClickListener(
+        item -> {
+          onContextItemSelected(item, accountId);
+          return true;
+        });
+    popup.show();
+  }
+
   @Override
   public void onCreateContextMenu(
       @NonNull ContextMenu menu, @NonNull View v, ContextMenu.ContextMenuInfo menuInfo) {

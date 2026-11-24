@@ -112,4 +112,19 @@ public abstract class BaseActionBarActivity extends AppCompatActivity {
         .commitAllowingStateLoss();
     return fragment;
   }
+
+  // shiroikuma fork: icons that sit in the top bar wear the top bar's icon role; the menu rows
+  // (shiroikuma/SkPillMenuItemView) colour their own by what the row does.
+  @Override
+  public boolean onPreparePanel(int featureId, android.view.View view, android.view.Menu menu) {
+    boolean result = super.onPreparePanel(featureId, view, menu);
+    org.thoughtcrime.securesms.shiroikuma.SkMenuPills.decorate(this, menu);
+    return result;
+  }
+
+  @Override
+  public void onSupportActionModeStarted(@androidx.annotation.NonNull androidx.appcompat.view.ActionMode mode) {
+    super.onSupportActionModeStarted(mode);
+    org.thoughtcrime.securesms.shiroikuma.SkMenuPills.decorate(this, mode.getMenu());
+  }
 }

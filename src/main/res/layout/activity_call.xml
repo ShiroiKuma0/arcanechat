@@ -254,7 +254,7 @@
                 android:padding="16dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_mic_on"
-                android:tint="?attr/colorAccent"
+                android:tint="@color/sk_role_call_glyph"
                 android:background="@drawable/call_button_bg"
                 android:contentDescription="@string/mute" />
 
@@ -276,7 +276,7 @@
                 android:padding="16dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_videocam_on"
-                android:tint="?attr/colorAccent"
+                android:tint="@color/sk_role_call_glyph"
                 android:background="@drawable/call_button_bg"
                 android:contentDescription="@string/toggle_camera" />
 
@@ -321,7 +321,7 @@
                 android:padding="16dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_volume_up"
-                android:tint="?attr/colorAccent"
+                android:tint="@color/sk_role_call_glyph"
                 android:background="@drawable/call_button_bg"
                 android:contentDescription="@string/audio" />
 
@@ -343,7 +343,7 @@
                 android:padding="16dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_switch_camera"
-                android:tint="?attr/colorAccent"
+                android:tint="@color/sk_role_call_glyph"
                 android:background="@drawable/call_button_bg"
                 android:contentDescription="@string/switch_camera" />
 

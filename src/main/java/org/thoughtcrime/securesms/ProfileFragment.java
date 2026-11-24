@@ -213,7 +213,9 @@ public class ProfileFragment extends Fragment
   @Override
   public void onStatusLongClicked(boolean isMultiUser) {
     Context context = requireContext();
-    new AlertDialog.Builder(context)
+    // shiroikuma fork: the copy rows are full-width icon pills, like the rows of a menu
+    org.thoughtcrime.securesms.shiroikuma.SkPills.actionList(
+        new AlertDialog.Builder(context)
         .setTitle(isMultiUser ? R.string.chat_description : R.string.pref_default_status_label)
         .setItems(
             new CharSequence[] {context.getString(R.string.menu_copy_to_clipboard)},
@@ -223,8 +225,10 @@ public class ProfileFragment extends Fragment
                       context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT)
                   .show();
             })
-        .setNegativeButton(R.string.cancel, null)
-        .show();
+            .setNegativeButton(R.string.cancel, null)
+            .show(),
+        org.thoughtcrime.securesms.shiroikuma.SkIcons.Icon.COPY,
+        org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.SHARE);
   }
 
   @Override
@@ -260,7 +264,9 @@ public class ProfileFragment extends Fragment
       return;
     }
 
-    new AlertDialog.Builder(context)
+    // shiroikuma fork: the copy rows are full-width icon pills, like the rows of a menu
+    org.thoughtcrime.securesms.shiroikuma.SkPills.actionList(
+        new AlertDialog.Builder(context)
         .setTitle(R.string.menu_copy_to_clipboard)
         .setItems(
             entries.toArray(new CharSequence[0]),
@@ -270,8 +276,10 @@ public class ProfileFragment extends Fragment
                       context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT)
                   .show();
             })
-        .setNegativeButton(R.string.cancel, null)
-        .show();
+            .setNegativeButton(R.string.cancel, null)
+            .show(),
+        org.thoughtcrime.securesms.shiroikuma.SkIcons.Icon.COPY,
+        org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.SHARE);
   }
 
   @Override

@@ -46,6 +46,19 @@ public final class FontUtil {
   public static final int SIZE_MAX = 96;       // SeekBar upper bound (sp)
   public static final int SIZE_HARD_CAP = 300; // typed upper bound (sp) - "even bigger if desired"
 
+  /**
+   * shiroikuma fork: the weight names and "Default" follow the app's language. Called before any
+   * label is shown (the font picker, the UI page); the family names are the system's own names.
+   */
+  public static void localize(Context c) {
+    try {
+      String[] weights = c.getResources().getStringArray(org.thoughtcrime.securesms.R.array.sk_font_weights);
+      for (int i = 0; i < WEIGHT_LABELS.length && i < weights.length; i++) WEIGHT_LABELS[i] = weights[i];
+      BUILTIN_FAMILY_LABELS[0] = WEIGHT_LABELS[0];
+    } catch (Throwable ignore) {
+    }
+  }
+
   private static final Map<String, Typeface> fileCache = new HashMap<>();
 
   /** "file:<absolute path>" values for every existing user-picked custom font file. */
@@ -189,7 +202,7 @@ public final class FontUtil {
       if (sb.length() > 0) sb.append(" \u00b7 ");
       sb.append(sizeSp).append("sp");
     }
-    return sb.length() == 0 ? "Default" : sb.toString();
+    return sb.length() == 0 ? WEIGHT_LABELS[0] : sb.toString();
   }
 
   private static String labelFor(String value) {

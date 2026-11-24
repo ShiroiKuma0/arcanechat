@@ -14,7 +14,7 @@
         android:paddingRight="11dp"
         android:background="@null"
         android:contentDescription="@string/audio"
-        android:tint="?attr/colorAccent"
+        android:tint="@color/sk_role_compose_icon"
         android:src="?quick_mic_icon" />
 
     <LinearLayout

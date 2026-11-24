@@ -97,6 +97,7 @@ public final class ShiroikumaExport {
 
   static {
     APP_EXCLUDE.add("ndk_arch_warned");
+    APP_EXCLUDE.add("sk_migrated_roles"); // device state of the colour-role migration
   }
 
   /** The selectable categories; {@code id} doubles as the JSON entry name inside the zip. */
@@ -221,7 +222,9 @@ public final class ShiroikumaExport {
     return k.startsWith("pref_color_")
         || k.startsWith("pref_font_")
         || k.startsWith("pref_ticks_") // Step 11: delivery-tick size, colours, glyphs, switches
-        || k.equals(Prefs.ACCENT_PREF)
+        || k.startsWith("sk_role_") // the colour roles of the black-yellow theme
+        || k.startsWith("sk_ui_") // section order and fold state of the UI page
+        || k.equals(Prefs.ACCENT_PREF) // an accent preset in an export of an older build
         || k.equals(Prefs.CHATLIST_STYLE_PREF);
   }
 
@@ -490,6 +493,9 @@ public final class ShiroikumaExport {
         line = importAccounts(context, zip, data);
       } else {
         line = String.valueOf(importPrefs(sp, data, cat));
+        // An export of an older build carries an accent preset and the single message colours;
+        // they become colour roles here, durably, before the import answers.
+        if (cat == Cat.UI) org.thoughtcrime.securesms.shiroikuma.SkRoles.remigrate(context);
       }
       any = true;
       if (summary.length() > 0) summary.append('\n');

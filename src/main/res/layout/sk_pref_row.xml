@@ -1,57 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- shiroikuma fork (Step 10, restyled to the kxkb spec): item row one step under a section.
-     Tight row (minHeight 0, 5dp vertical padding), title 16sp accent, dimmed 13sp summary,
-     72dp indent. The icon (colour swatch) sits on the RIGHT, kxkb-style, before the widget. -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- shiroikuma fork: a row of the UI page. Carries no colour - label, description, rule, icon and
+     pill are coloured in code by shiroikuma/SkPreferenceRows from the colour roles. Only as tall
+     as its content: no minimum height, 2dp above and below. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="0dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingStart="72dp"
-    android:paddingLeft="72dp"
+    android:paddingStart="16dp"
     android:paddingEnd="16dp"
-    android:paddingRight="16dp"
-    android:paddingTop="5dp"
-    android:paddingBottom="5dp"
-    android:background="?android:attr/selectableItemBackground"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
     android:focusable="true">
-
     <LinearLayout
+        android:id="@+id/sk_text_column"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical">
-
         <TextView
             android:id="@android:id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:textSize="16sp"
-            android:textColor="?attr/colorAccent"
-            android:ellipsize="marquee"
-            android:fadingEdge="horizontal" />
-
+            android:textSize="16sp" />
         <TextView
             android:id="@android:id/summary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="13sp"
-            android:textColor="?attr/colorAccent"
-            android:alpha="0.78"
-            android:maxLines="4" />
-
+            android:maxLines="6" />
     </LinearLayout>
-
     <LinearLayout
         android:id="@+id/icon_frame"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
         android:gravity="center">
         <androidx.preference.internal.PreferenceImageView
             android:id="@android:id/icon"
@@ -60,12 +45,10 @@
             app:maxWidth="48dp"
             app:maxHeight="48dp" />
     </LinearLayout>
-
     <LinearLayout
         android:id="@android:id/widget_frame"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical" />
-
 </LinearLayout>

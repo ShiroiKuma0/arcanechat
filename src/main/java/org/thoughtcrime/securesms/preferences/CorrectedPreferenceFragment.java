@@ -25,6 +25,13 @@ public abstract class CorrectedPreferenceFragment extends PreferenceFragmentComp
     if (lv != null) lv.setPadding(0, 0, 0, 0);
   }
 
+  // shiroikuma fork: every row of every settings screen is drawn by the black-yellow theme's
+  // rules in the adapter (icons by role, pills for action rows, the left rule, minimal padding).
+  @Override
+  protected RecyclerView.Adapter onCreateAdapter(androidx.preference.PreferenceScreen screen) {
+    return new org.thoughtcrime.securesms.shiroikuma.SkPreferenceRows.Adapter(screen);
+  }
+
   // shiroikuma fork (Step 3): configurable settings font, applied to every TextView in the
   // preference list. RecyclerView recycles rows, so we apply on child-attach as well as to the
   // rows already on screen. No-op unless a settings font is actually configured.

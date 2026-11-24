@@ -33,6 +33,7 @@ public class FontPickerDialog {
       int initialWeight,
       int initialSize,
       OnFontSelectedListener listener) {
+    FontUtil.localize(context);
 
     final String[] familyValues = FontUtil.allFamilyValues(context);
     final String[] familyLabels = FontUtil.allFamilyLabels(context);
@@ -162,7 +163,7 @@ public class FontPickerDialog {
             android.R.string.ok,
             (d, w) ->
                 listener.onFontSelected(familyValues[sel[0]], FontUtil.WEIGHT_VALUES[sel[1]], sel[2]))
-        .setNeutralButton("Reset", (d, w) -> listener.onFontSelected("", 0, 0))
+        .setNeutralButton(org.thoughtcrime.securesms.R.string.sk_reset, (d, w) -> listener.onFontSelected("", 0, 0))
         .setNegativeButton(android.R.string.cancel, null)
         .show();
   }

@@ -47,7 +47,26 @@ public class FullMsgActivity extends WebViewActivity {
   protected void onCreate(Bundle state, boolean ready) {
     super.onCreate(state, ready);
 
-    registerForContextMenu(webView);
+    // shiroikuma fork: a pill menu instead of the platform's context menu.
+    webView.setOnLongClickListener(
+        v -> {
+          WebView.HitTestResult result = webView.getHitTestResult();
+          if (result == null) return false;
+          int type = result.getType();
+          if (type != WebView.HitTestResult.IMAGE_TYPE
+              && type != WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+            return false;
+          }
+          imageUrl = result.getExtra();
+          if (imageUrl == null || imageUrl.startsWith("data:")) return false;
+          org.thoughtcrime.securesms.shiroikuma.SkPopupMenu popup =
+              new org.thoughtcrime.securesms.shiroikuma.SkPopupMenu(this, webView);
+          popup.getMenuInflater().inflate(R.menu.web_view_context, popup.getMenu());
+          popup.getMenu().findItem(R.id.action_export_image).setVisible(false);
+          popup.setOnMenuItemClickListener(this::onContextItemSelected);
+          popup.show();
+          return true;
+        });
     blockLoadingRemote = getIntent().getBooleanExtra(BLOCK_LOADING_REMOTE, false);
     loadRemoteContent = !blockLoadingRemote && Prefs.getAlwaysLoadRemoteContent(this);
     webView.getSettings().setBlockNetworkLoads(!loadRemoteContent);

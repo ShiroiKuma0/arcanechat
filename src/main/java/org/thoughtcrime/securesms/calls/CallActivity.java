@@ -133,7 +133,8 @@ public class CallActivity extends AppCompatActivity {
     // shiroikuma fork: this activity is not a BaseActionBarActivity, so DynamicTheme never runs
     // for it and ?attr/colorAccent would resolve to the Material3 default. Layer the chosen accent
     // preset on before inflating, so the call controls are yellow (or whatever accent is set).
-    getTheme().applyStyle(DynamicTheme.getAccentOverlay(this), true);
+    org.thoughtcrime.securesms.shiroikuma.SkPalette.apply(this);
+    getTheme().applyStyle(R.style.ThemeOverlay_Sk_Colors, true);
 
     setContentView(R.layout.activity_call);
 
@@ -343,9 +344,52 @@ public class CallActivity extends AppCompatActivity {
     speakerButton = findViewById(R.id.speaker_button);
     switchCameraButton = findViewById(R.id.switch_camera_button);
 
+    styleCallActions();
+
     initializeVideoRenderers();
     setupButtonListeners();
     setupAccessibility();
+  }
+
+  /**
+   * shiroikuma fork: Answer, Decline and Hang up are never filled - each is an outline in the
+   * colour that carries its meaning (the answer green, the decline red), the ground showing
+   * through, with a 3 dp frame as the main actions of this screen. The colours are roles.
+   */
+  private void styleCallActions() {
+    float d = getResources().getDisplayMetrics().density;
+    int ground =
+        org.thoughtcrime.securesms.shiroikuma.SkRoles.get(
+            this, org.thoughtcrime.securesms.shiroikuma.SkRole.CALL_GROUND);
+    int answer =
+        org.thoughtcrime.securesms.shiroikuma.SkRoles.get(
+            this, org.thoughtcrime.securesms.shiroikuma.SkRole.CALL_ANSWER);
+    int decline =
+        org.thoughtcrime.securesms.shiroikuma.SkRoles.get(
+            this, org.thoughtcrime.securesms.shiroikuma.SkRole.CALL_DECLINE);
+    MaterialButton[] buttons = {answerButton, declineButton};
+    int[] colors = {answer, decline};
+    for (int i = 0; i < buttons.length; i++) {
+      MaterialButton b = buttons[i];
+      if (b == null) continue;
+      ColorStateList ink = ColorStateList.valueOf(colors[i]);
+      b.setBackgroundTintList(ColorStateList.valueOf(ground));
+      b.setStrokeColor(ink);
+      b.setStrokeWidth(Math.round(3 * d));
+      b.setCornerRadius(Math.round(100 * d));
+      b.setTextColor(ink);
+      b.setIconTint(ink);
+      b.setRippleColor(ColorStateList.valueOf((colors[i] & 0x00FFFFFF) | 0x4D000000));
+      b.setTypeface(android.graphics.Typeface.create(b.getTypeface(), android.graphics.Typeface.BOLD));
+      b.setElevation(0);
+    }
+    if (endCallButton instanceof com.google.android.material.floatingactionbutton.FloatingActionButton) {
+      org.thoughtcrime.securesms.shiroikuma.SkViewInflater.floating(
+          (com.google.android.material.floatingactionbutton.FloatingActionButton) endCallButton,
+          decline,
+          decline,
+          ground);
+    }
   }
 
   /**
@@ -359,11 +403,16 @@ public class CallActivity extends AppCompatActivity {
    * MaterialButtonToggleGroup sees it while it computes its shared-border margins.
    */
   private void styleAnswerModeSelector() {
-    int accent = ThemeUtil.getThemedColor(this, R.attr.colorAccent);
+    int accent =
+        org.thoughtcrime.securesms.shiroikuma.SkRoles.get(
+            this, org.thoughtcrime.securesms.shiroikuma.SkRole.CALL_RING);
+    int ground =
+        org.thoughtcrime.securesms.shiroikuma.SkRoles.get(
+            this, org.thoughtcrime.securesms.shiroikuma.SkRole.CALL_GROUND);
     int[][] states = {new int[] {android.R.attr.state_checked}, new int[0]};
 
-    ColorStateList fill = new ColorStateList(states, new int[] {accent, Color.BLACK});
-    ColorStateList foreground = new ColorStateList(states, new int[] {Color.BLACK, accent});
+    ColorStateList fill = new ColorStateList(states, new int[] {accent, ground});
+    ColorStateList foreground = new ColorStateList(states, new int[] {ground, accent});
     ColorStateList ripple = ColorStateList.valueOf((accent & 0x00FFFFFF) | 0x66000000);
 
     for (int id : new int[] {R.id.answer_audio_only_button, R.id.answer_video_button}) {

@@ -72,6 +72,16 @@ public class PinnedMessagesBanner extends FrameLayout {
 
     positionIndicatorContainer = findViewById(R.id.position_indicator_container);
     textView = findViewById(R.id.msg_text);
+    // shiroikuma fork: the bar's ground and text are colour roles. (The layout that hosts it
+    // names the bubble colour as its background, which in this fork is the white identity tint.)
+    setBackgroundColor(
+        org.thoughtcrime.securesms.shiroikuma.SkRoles.get(
+            getContext(), org.thoughtcrime.securesms.shiroikuma.SkRole.PINNED_BANNER_GROUND));
+    if (textView != null) {
+      textView.setTextColor(
+          org.thoughtcrime.securesms.shiroikuma.SkRoles.get(
+              getContext(), org.thoughtcrime.securesms.shiroikuma.SkRole.PINNED_BANNER_TEXT));
+    }
     thumbnailView = findViewById(R.id.thumbnail);
     fileIconView = findViewById(R.id.file_icon);
     pinIconView = findViewById(R.id.pin_icon);

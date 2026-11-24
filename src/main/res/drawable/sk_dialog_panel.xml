@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- shiroikuma fork: the ground and frame of a dialog window. The platform reads this shape from
+     the theme, so it names colour roles instead of being drawn in code. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/sk_role_dialog_ground" />
+    <stroke android:width="2dp" android:color="@color/sk_role_dialog_frame" />
+    <corners android:radius="8dp" />
+</shape>

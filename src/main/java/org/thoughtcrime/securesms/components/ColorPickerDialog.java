@@ -23,6 +23,16 @@ public class ColorPickerDialog {
 
   public static void show(
       Context context, String title, int initialColor, OnColorSelectedListener listener) {
+    show(context, title, initialColor, listener, null);
+  }
+
+  /** shiroikuma fork: with a "Default" button that gives a colour role back its default. */
+  public static void show(
+      Context context,
+      String title,
+      int initialColor,
+      OnColorSelectedListener listener,
+      @androidx.annotation.Nullable Runnable onDefault) {
     View view = LayoutInflater.from(context).inflate(R.layout.dialog_color_picker, null);
 
     final View preview = view.findViewById(R.id.color_preview);
@@ -103,12 +113,16 @@ public class ColorPickerDialog {
     hex.setText(String.format("#%06X", current[0] & 0xFFFFFF));
     refreshPreview.run();
 
-    new AlertDialog.Builder(context)
-        .setTitle(title)
-        .setView(view)
-        .setPositiveButton(
-            android.R.string.ok, (dialog, which) -> listener.onColorSelected(current[0]))
-        .setNegativeButton(android.R.string.cancel, null)
-        .show();
+    AlertDialog.Builder builder =
+        new AlertDialog.Builder(context)
+            .setTitle(title)
+            .setView(view)
+            .setPositiveButton(
+                android.R.string.ok, (dialog, which) -> listener.onColorSelected(current[0]))
+            .setNegativeButton(android.R.string.cancel, null);
+    if (onDefault != null) {
+      builder.setNeutralButton(R.string.sk_default, (dialog, which) -> onDefault.run());
+    }
+    builder.show();
   }
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- shiroikuma fork: view tags of the theme helpers. -->
+    <item name="sk_styled" type="id" />
+    <item name="sk_icon" type="id" />
+    <item name="sk_menu_details" type="id" />
+</resources>

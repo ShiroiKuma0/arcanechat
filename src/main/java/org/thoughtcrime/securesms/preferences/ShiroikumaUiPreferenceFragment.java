@@ -23,18 +23,32 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceScreen;
+import org.thoughtcrime.securesms.ApplicationPreferencesActivity;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.thoughtcrime.securesms.R;
+import org.thoughtcrime.securesms.shiroikuma.SkActionPreference;
+import org.thoughtcrime.securesms.shiroikuma.SkIcons;
+import org.thoughtcrime.securesms.shiroikuma.SkIndexPreference;
+import org.thoughtcrime.securesms.shiroikuma.SkPageState;
+import org.thoughtcrime.securesms.shiroikuma.SkPills;
+import org.thoughtcrime.securesms.shiroikuma.SkRole;
+import org.thoughtcrime.securesms.shiroikuma.SkRolePreference;
+import org.thoughtcrime.securesms.shiroikuma.SkRoles;
+import org.thoughtcrime.securesms.shiroikuma.SkSectionCategory;
+import org.thoughtcrime.securesms.shiroikuma.SkSubheaderPreference;
+import org.thoughtcrime.securesms.shiroikuma.SkSwitches;
 import org.thoughtcrime.securesms.automation.AutomationAuth;
 import org.thoughtcrime.securesms.automation.StateExportReceiver;
 import org.thoughtcrime.securesms.components.AutomationTokenPreference;
@@ -68,14 +82,14 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
           new ActivityResultContracts.StartActivityForResult(),
           result -> {
             if (hasStoragePermission()) launchFontPicker();
-            else Toast.makeText(getContext(), "Storage access not granted", Toast.LENGTH_SHORT).show();
+            else Toast.makeText(getContext(), R.string.sk_storage_not_granted, Toast.LENGTH_SHORT).show();
           });
   private final ActivityResultLauncher<String> readPermLauncher =
       registerForActivityResult(
           new ActivityResultContracts.RequestPermission(),
           granted -> {
             if (granted) launchFontPicker();
-            else Toast.makeText(getContext(), "Storage permission denied", Toast.LENGTH_SHORT).show();
+            else Toast.makeText(getContext(), R.string.sk_storage_not_granted, Toast.LENGTH_SHORT).show();
           });
   private final ActivityResultLauncher<String[]> fontPickLauncher =
       registerForActivityResult(
@@ -86,7 +100,6 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
 
   // shiroikuma fork: Export/Import (Kōjiki-style). SAF folder picker for the export directory,
   // save-as fallback when no directory is set, and the import file picker.
-  private static final int EIM_WARN_COLOR = 0xFFFF5252;
   private final ActivityResultLauncher<Uri> eimDirPickerLauncher =
       registerForActivityResult(
           new ActivityResultContracts.OpenDocumentTree(),
@@ -114,7 +127,9 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
 
   @Override
   public void onCreatePreferences(@Nullable Bundle savedInstanceState, String rootKey) {
+    FontUtil.localize(requireContext());
     addPreferencesFromResource(R.xml.preferences_shiroikuma_ui);
+    buildPage();
   }
 
   @Override
@@ -136,32 +151,6 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
           });
     }
 
-    // accent preset picker - applies on recreate via DynamicTheme.
-    ListPreference accentPref = (ListPreference) findPreference(Prefs.ACCENT_PREF);
-    if (accentPref != null) {
-      accentPref.setValue(Prefs.getAccent(getContext()));
-      accentPref.setSummary(accentPref.getEntry());
-      accentPref.setOnPreferenceChangeListener(
-          (p, value) -> {
-            Prefs.setAccent(getContext(), (String) value);
-            int idx = accentPref.findIndexOfValue((String) value);
-            if (idx >= 0) p.setSummary(accentPref.getEntries()[idx]);
-            requireActivity().recreate();
-            return false; // stored manually (persistent=false); value reset on recreate
-          });
-    }
-
-    initializeColorPref(Prefs.COLOR_MSG_TEXT_IN_PREF);
-    initializeColorPref(Prefs.COLOR_MSG_TEXT_OUT_PREF);
-    initializeColorPref(Prefs.COLOR_BUBBLE_FILL_IN_PREF);
-    initializeColorPref(Prefs.COLOR_BUBBLE_FILL_OUT_PREF);
-    initializeColorPref(Prefs.COLOR_BUBBLE_BORDER_IN_PREF);
-    initializeColorPref(Prefs.COLOR_BUBBLE_BORDER_OUT_PREF);
-    initializeColorPref(Prefs.COLOR_CONVERSATION_BG_PREF);
-    initializeColorPref(Prefs.COLOR_LIST_TITLE_PREF);
-    initializeColorPref(Prefs.COLOR_LIST_PREVIEW_PREF);
-    initializeColorPref(Prefs.COLOR_LIST_DATE_PREF);
-    initializeColorPref(Prefs.COLOR_FAB_PREF);
 
     initializeFontPref(Prefs.FONT_CHAT_TEXT, "pref_font_chat_text");
     initializeFontPref(Prefs.FONT_CONV_TITLE, "pref_font_conv_title");
@@ -255,12 +244,12 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     if (requireTokenPref != null) {
       boolean required = AutomationAuth.isTokenRequired(requireContext());
       requireTokenPref.setChecked(required);
-      if (tokenPref != null) tokenPref.setVisible(required);
+      if (tokenPref != null) SkSectionCategory.setWanted(tokenPref, required);
       requireTokenPref.setOnPreferenceChangeListener(
           (p, value) -> {
             boolean now = Boolean.TRUE.equals(value);
             AutomationAuth.setTokenRequired(requireContext(), now);
-            if (tokenPref != null) tokenPref.setVisible(now);
+            if (tokenPref != null) SkSectionCategory.setWanted(tokenPref, now);
             return true;
           });
     }
@@ -328,64 +317,21 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
   }
 
   /**
-   * The dialog theme (Theme.AppCompat.Dialog.Alert) redefines colorAccent to the Material default
-   * teal, so ?attr-based window borders come out wrong inside dialogs. Restyle in code with the
-   * ACTIVITY-resolved accent: black rounded window with an accent border, and pill buttons with a
-   * round accent border. Call after show() — the buttons only exist then.
+   * Every dialog is themed in one place now - the dialog theme names colour roles and {@code
+   * shiroikuma/SkViewInflater} makes its buttons pills - so nothing is left to restyle here. Kept
+   * as the one hook the dialogs of this page pass through.
    */
-  private void styleEximDialog(AlertDialog dialog) {
-    Context ctx = requireContext();
-    int accent = ResUtil.getColor(ctx, R.attr.colorAccent);
-    float dp = getResources().getDisplayMetrics().density;
+  private void styleEximDialog(AlertDialog dialog) {}
 
-    if (dialog.getWindow() != null) {
-      GradientDrawable bg = new GradientDrawable();
-      bg.setColor(0xFF000000);
-      bg.setCornerRadius(8 * dp);
-      bg.setStroke((int) (2 * dp), accent);
-      dialog.getWindow().setBackgroundDrawable(new InsetDrawable(bg, (int) (16 * dp)));
-    }
-
-    // the dialog theme's textColorPrimary is white - recolour the message body to the accent
-    TextView msgTv = dialog.findViewById(android.R.id.message);
-    if (msgTv != null) msgTv.setTextColor(accent);
-
-    int[] which = {
-      AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL
-    };
-    for (int w : which) {
-      Button b = dialog.getButton(w);
-      if (b == null) continue;
-      GradientDrawable pill = new GradientDrawable();
-      pill.setColor(0xFF000000);
-      pill.setCornerRadius(50 * dp);
-      pill.setStroke((int) (1.5f * dp), accent);
-      RippleDrawable ripple =
-          new RippleDrawable(
-              ColorStateList.valueOf((accent & 0x00FFFFFF) | 0x33000000), pill, null);
-      b.setBackground(ripple);
-      b.setTextColor(accent);
-      b.setPadding((int) (20 * dp), (int) (6 * dp), (int) (20 * dp), (int) (6 * dp));
-      ViewGroup.LayoutParams lp = b.getLayoutParams();
-      if (lp instanceof ViewGroup.MarginLayoutParams) {
-        ((ViewGroup.MarginLayoutParams) lp).setMarginStart((int) (8 * dp));
-        b.setLayoutParams(lp);
-      }
-    }
-  }
-
-  private GradientDrawable eimBorder(int accent) {
-    GradientDrawable d = new GradientDrawable();
-    d.setColor(0xFF000000);
-    d.setCornerRadius(8 * getResources().getDisplayMetrics().density);
-    d.setStroke((int) (1.5f * getResources().getDisplayMetrics().density), accent);
-    return d;
+  private GradientDrawable eimBorder(int frame) {
+    return SkPills.panel(
+        requireContext(), 1.25f, 8f, frame, SkRoles.get(requireContext(), SkRole.DIALOG_GROUND));
   }
 
   private void showExportImportDialog() {
     Context ctx = requireContext();
-    int accent = ResUtil.getColor(ctx, R.attr.colorAccent);
-    int dim = (accent & 0x00FFFFFF) | 0xC8000000;
+    int accent = SkRoles.get(ctx, SkRole.DIALOG_TEXT);
+    int dim = SkRoles.get(ctx, SkRole.NOTE);
     float dp = getResources().getDisplayMetrics().density;
     int pad = (int) (20 * dp);
 
@@ -404,7 +350,7 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     dirBox.setOrientation(LinearLayout.VERTICAL);
     int boxPad = (int) (12 * dp);
     dirBox.setPadding(boxPad, boxPad, boxPad, boxPad);
-    dirBox.setBackground(eimBorder(accent));
+    dirBox.setBackground(eimBorder(SkRoles.get(ctx, SkRole.DIALOG_FRAME)));
     LinearLayout.LayoutParams dirLp =
         new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -435,14 +381,14 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     List<CheckBox> catBoxes = new ArrayList<>();
     CheckBox selectAll = new CheckBox(ctx);
     selectAll.setText(R.string.eim_select_all);
-    selectAll.setTextColor(accent);
+    SkSwitches.mark(selectAll);
     selectAll.setTypeface(null, Typeface.BOLD);
     root.addView(selectAll);
     boolean allOn = true;
     for (ShiroikumaExport.Cat cat : ShiroikumaExport.Cat.values()) {
       CheckBox cb = new CheckBox(ctx);
       cb.setText(cat.labelRes);
-      cb.setTextColor(accent);
+      SkSwitches.mark(cb);
       cb.setChecked(cat.defaultSelected);
       cb.setTag(cat);
       catBoxes.add(cb);
@@ -535,7 +481,7 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
       eimFolderTv.setTextColor(accent);
     } else {
       eimFolderTv.setText(R.string.eim_dir_unset);
-      eimFolderTv.setTextColor(EIM_WARN_COLOR);
+      eimFolderTv.setTextColor(SkRoles.get(requireContext(), SkRole.DELETE));
     }
     TextView statusTv = eimStatusTv;
     Context app = ctx.getApplicationContext();
@@ -546,7 +492,7 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
           Util.runOnMain(
               () -> {
                 statusTv.setText(status);
-                statusTv.setTextColor(warn ? EIM_WARN_COLOR : accent);
+                statusTv.setTextColor(warn ? SkRoles.get(requireContext(), SkRole.DELETE) : accent);
               });
         });
   }
@@ -775,7 +721,7 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
 
   private void requestStoragePermission() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      Toast.makeText(getContext(), "Grant all-files access, then pick again", Toast.LENGTH_LONG).show();
+      Toast.makeText(getContext(), R.string.sk_font_grant_access, Toast.LENGTH_LONG).show();
       try {
         allFilesLauncher.launch(
             new Intent(
@@ -805,12 +751,12 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
       path = FontUtil.copyToInternal(ctx, uri, queryDisplayName(ctx, uri));
     }
     if (path == null) {
-      Toast.makeText(ctx, "Could not read that file", Toast.LENGTH_SHORT).show();
+      Toast.makeText(ctx, R.string.sk_font_unreadable, Toast.LENGTH_SHORT).show();
       return;
     }
     Prefs.addFontFile(ctx, path);
     FontUtil.clearCache();
-    Toast.makeText(ctx, "Added " + new File(path).getName(), Toast.LENGTH_SHORT).show();
+    Toast.makeText(ctx, getString(R.string.sk_font_added, new File(path).getName()), Toast.LENGTH_SHORT).show();
   }
 
   private String resolveFontPath(Context ctx, Uri uri) {
@@ -869,26 +815,6 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
         });
   }
 
-  // a colour-role preference - shows a swatch of the current colour and opens the RGB/hex picker on
-  // tap. The colour applies on next render (the surface reads Prefs at bind time), so no recreation.
-  private void initializeColorPref(String key) {
-    Preference pref = findPreference(key);
-    if (pref == null) return;
-    updateColorSwatch(pref, getColorFor(key));
-    pref.setOnPreferenceClickListener(
-        p -> {
-          ColorPickerDialog.show(
-              getContext(),
-              p.getTitle() == null ? "" : p.getTitle().toString(),
-              getColorFor(key),
-              color -> {
-                setColorFor(key, color);
-                updateColorSwatch(p, color);
-              });
-          return true;
-        });
-  }
-
   // shiroikuma fork (Step 11): the delivery-tick section - one shared size, then a colour + glyph
   // pair per state (plus the spin and group-opt-in switches). Everything applies at the next bind,
   // so no recreate is needed; the chat list repaints on return via ConversationListFragment.
@@ -919,7 +845,6 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
           Prefs.TICK_RECEIVED_ALL,
           Prefs.TICK_FAILED
         }) {
-      initializeTickColorPref(state);
       initializeTickGlyphPref(state);
     }
 
@@ -948,25 +873,6 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
 
   private void updateTickSizeSummary(Preference pref) {
     pref.setSummary(getString(R.string.pref_ticks_size_summary, Prefs.getTickSize(getContext())));
-  }
-
-  private void initializeTickColorPref(String state) {
-    Preference pref = findPreference(Prefs.tickColorKey(state));
-    if (pref == null) return;
-    updateColorSwatch(pref, Prefs.getTickColor(getContext(), state));
-    pref.setOnPreferenceClickListener(
-        p -> {
-          ColorPickerDialog.show(
-              getContext(),
-              p.getTitle() == null ? "" : p.getTitle().toString(),
-              Prefs.getTickColor(getContext(), state),
-              color -> {
-                Prefs.setTickColor(getContext(), state, color);
-                updateColorSwatch(p, color);
-                updateTickGlyphRow(state); // the glyph preview is drawn in this colour
-              });
-          return true;
-        });
   }
 
   // The glyph row itself previews the chosen glyph, at the configured tick size and colour, so the
@@ -1022,84 +928,186 @@ public class ShiroikumaUiPreferenceFragment extends CorrectedPreferenceFragment 
     }
   }
 
-  private int getColorFor(String key) {
-    Context c = getContext();
-    switch (key) {
-      case Prefs.COLOR_MSG_TEXT_IN_PREF:
-        return Prefs.getMessageTextColor(c, false);
-      case Prefs.COLOR_MSG_TEXT_OUT_PREF:
-        return Prefs.getMessageTextColor(c, true);
-      case Prefs.COLOR_BUBBLE_FILL_IN_PREF:
-        return Prefs.getBubbleFillColor(c, false);
-      case Prefs.COLOR_BUBBLE_FILL_OUT_PREF:
-        return Prefs.getBubbleFillColor(c, true);
-      case Prefs.COLOR_BUBBLE_BORDER_IN_PREF:
-        return Prefs.getBubbleBorderColor(c, false);
-      case Prefs.COLOR_BUBBLE_BORDER_OUT_PREF:
-        return Prefs.getBubbleBorderColor(c, true);
-      case Prefs.COLOR_CONVERSATION_BG_PREF:
-        return Prefs.getConversationBackgroundColor(c);
-      case Prefs.COLOR_LIST_TITLE_PREF:
-        return Prefs.getListTitleColor(c);
-      case Prefs.COLOR_LIST_PREVIEW_PREF:
-        return Prefs.getListPreviewColor(c);
-      case Prefs.COLOR_LIST_DATE_PREF:
-        return Prefs.getListDateColor(c);
-      case Prefs.COLOR_FAB_PREF:
-      default:
-        return Prefs.getFabColor(c);
+  // --- the page: sections, chip index, role rows ------------------------------------------
+
+  /** Icon and colour of every section, by its id; the colour says what kind of thing it is. */
+  private static final Object[][] SECTION_LOOKS = {
+    {"eximport", SkIcons.Icon.SHARE, SkRole.SECTION_REACH, null},
+    {"foundation", SkIcons.Icon.PALETTE, SkRole.SECTION_BASE, SkRole.Section.FOUNDATION},
+    {"text", SkIcons.Icon.TEXT, SkRole.SECTION_WORDS, SkRole.Section.TEXT},
+    {"buttons", SkIcons.Icon.POINTER, SkRole.SECTION_CONTROLS, SkRole.Section.BUTTONS},
+    {"bars", SkIcons.Icon.DESKTOP, SkRole.SECTION_FRAME, SkRole.Section.BARS},
+    {"dialogs", SkIcons.Icon.BUBBLE, SkRole.SECTION_REACH, SkRole.Section.DIALOGS},
+    {"switches", SkIcons.Icon.TOGGLE, SkRole.SECTION_CONTROLS, SkRole.Section.SWITCHES},
+    {"lists", SkIcons.Icon.LIST, SkRole.SECTION_FRAME, SkRole.Section.LISTS},
+    {"menus", SkIcons.Icon.LAYERS, SkRole.SECTION_REACH, SkRole.Section.MENUS},
+    {"marks", SkIcons.Icon.SELECT, SkRole.SECTION_CONTROLS, SkRole.Section.MARKS},
+    {"fields", SkIcons.Icon.KEYBOARD, SkRole.SECTION_WORDS, SkRole.Section.FIELDS},
+    {"chatlist", SkIcons.Icon.GROUP, SkRole.SECTION_BASE, SkRole.Section.CHATLIST},
+    {"conversation", SkIcons.Icon.FRAME, SkRole.SECTION_FRAME, SkRole.Section.CONVERSATION},
+    {"compose", SkIcons.Icon.EDIT, SkRole.SECTION_WORDS, SkRole.Section.COMPOSE},
+    {"ticks", SkIcons.Icon.TICK2, SkRole.SECTION_BASE, SkRole.Section.TICKS},
+    {"calls", SkIcons.Icon.PHONE, SkRole.SECTION_CONTROLS, SkRole.Section.CALLS},
+    {"page", SkIcons.Icon.GEAR, SkRole.SECTION_BASE, SkRole.Section.PAGE},
+    {"custom_fonts", SkIcons.Icon.BOOK, SkRole.SECTION_WORDS, null},
+    {"maintenance", SkIcons.Icon.WARNING, SkRole.SECTION_WARNING, null},
+  };
+
+  private final List<SkSectionCategory> sections = new ArrayList<>();
+  private final List<String> defaultOrder = new ArrayList<>();
+
+  /**
+   * Turns the inflated preference tree into the page: gives every section its icon and colour,
+   * appends the swatch row of every colour role to the section of its item, puts the chip index
+   * under the settings link, applies the stored section order and folds what is not open.
+   */
+  private void buildPage() {
+    final Context ctx = requireContext();
+    PreferenceScreen screen = getPreferenceScreen();
+    sections.clear();
+    defaultOrder.clear();
+    for (int i = 0; i < screen.getPreferenceCount(); i++) {
+      Preference p = screen.getPreference(i);
+      if (p instanceof SkSectionCategory) sections.add((SkSectionCategory) p);
+    }
+    for (SkSectionCategory section : sections) {
+      defaultOrder.add(section.id());
+      SkRole.Section roles = null;
+      for (Object[] look : SECTION_LOOKS) {
+        if (look[0].equals(section.id())) {
+          section.look((SkIcons.Icon) look[1], (SkRole) look[2]);
+          roles = (SkRole.Section) look[3];
+        }
+      }
+      // rows under a sub-heading sit one step further in
+      int level = 0;
+      for (int i = 0; i < section.getPreferenceCount(); i++) {
+        Preference p = section.getPreference(i);
+        if (p instanceof SkSubheaderPreference) level = 1;
+        else p.getExtras().putInt("sk_level", level);
+      }
+      if (roles != null) {
+        if (section.getPreferenceCount() > 0) {
+          SkSubheaderPreference colours = new SkSubheaderPreference(ctx);
+          colours.setTitle(R.string.pref_colors_category);
+          colours.setPersistent(false);
+          section.addPreference(colours);
+          level = 1;
+        }
+        for (SkRole role : SkRole.values()) {
+          if (role.section != roles) continue;
+          SkRolePreference row = new SkRolePreference(ctx, role);
+          row.getExtras().putInt("sk_level", level);
+          row.setOnPreferenceClickListener(
+              p -> {
+                pickRole((SkRolePreference) p);
+                return true;
+              });
+          section.addPreference(row);
+        }
+      }
+      section.setOpen(SkPageState.isOpen(ctx, section.id()), false);
+    }
+
+    Preference settings = findPreference("sk_app_settings");
+    if (settings != null) {
+      settings.setOrder(0);
+      settings.setOnPreferenceClickListener(
+          p -> {
+            startActivity(new Intent(ctx, ApplicationPreferencesActivity.class));
+            return true;
+          });
+    }
+    SkIndexPreference index =
+        new SkIndexPreference(
+            ctx,
+            new SkIndexPreference.Host() {
+              @NonNull
+              @Override
+              public List<SkSectionCategory> sections() {
+                return orderedSections();
+              }
+
+              @Override
+              public void jump(@NonNull SkSectionCategory section) {
+                if (!section.isOpen()) section.setOpen(true, true);
+                final String key = section.getKey();
+                if (getListView() != null) getListView().post(() -> scrollToPreference(key));
+              }
+
+              @Override
+              public void reorder(@NonNull List<String> order) {
+                SkPageState.setOrder(ctx, order);
+                applyOrder();
+              }
+            });
+    index.setOrder(1);
+    screen.addPreference(index);
+    applyOrder();
+
+    Preference resetOrder = findPreference("sk_reset_order");
+    if (resetOrder != null) {
+      resetOrder.setOnPreferenceClickListener(
+          p -> {
+            SkPageState.resetOrder(ctx);
+            applyOrder();
+            Preference idx = findPreference("sk_index");
+            if (idx instanceof SkIndexPreference) ((SkIndexPreference) idx).redraw();
+            return true;
+          });
+    }
+    Preference resetColours = findPreference("sk_reset_colors");
+    if (resetColours != null) {
+      resetColours.setOnPreferenceClickListener(
+          p -> {
+            new AlertDialog.Builder(ctx)
+                .setTitle(R.string.sk_reset_colors)
+                .setMessage(R.string.sk_reset_colors_confirm)
+                .setPositiveButton(
+                    R.string.sk_reset_colors,
+                    (d, w) -> {
+                      SkRoles.resetAll(ctx);
+                      requireActivity().recreate();
+                    })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+            return true;
+          });
     }
   }
 
-  private void setColorFor(String key, int color) {
-    Context c = getContext();
-    switch (key) {
-      case Prefs.COLOR_MSG_TEXT_IN_PREF:
-        Prefs.setMessageTextColor(c, false, color);
-        break;
-      case Prefs.COLOR_MSG_TEXT_OUT_PREF:
-        Prefs.setMessageTextColor(c, true, color);
-        break;
-      case Prefs.COLOR_BUBBLE_FILL_IN_PREF:
-        Prefs.setBubbleFillColor(c, false, color);
-        break;
-      case Prefs.COLOR_BUBBLE_FILL_OUT_PREF:
-        Prefs.setBubbleFillColor(c, true, color);
-        break;
-      case Prefs.COLOR_BUBBLE_BORDER_IN_PREF:
-        Prefs.setBubbleBorderColor(c, false, color);
-        break;
-      case Prefs.COLOR_BUBBLE_BORDER_OUT_PREF:
-        Prefs.setBubbleBorderColor(c, true, color);
-        break;
-      case Prefs.COLOR_CONVERSATION_BG_PREF:
-        Prefs.setConversationBackgroundColor(c, color);
-        break;
-      case Prefs.COLOR_LIST_TITLE_PREF:
-        Prefs.setListTitleColor(c, color);
-        break;
-      case Prefs.COLOR_LIST_PREVIEW_PREF:
-        Prefs.setListPreviewColor(c, color);
-        break;
-      case Prefs.COLOR_LIST_DATE_PREF:
-        Prefs.setListDateColor(c, color);
-        break;
-      case Prefs.COLOR_FAB_PREF:
-      default:
-        Prefs.setFabColor(c, color);
-        break;
+  @NonNull
+  private List<SkSectionCategory> orderedSections() {
+    List<SkSectionCategory> out = new ArrayList<>();
+    for (String id : SkPageState.order(requireContext(), defaultOrder)) {
+      for (SkSectionCategory s : sections) if (s.id().equals(id)) out.add(s);
     }
+    return out;
   }
 
-  private void updateColorSwatch(Preference pref, int color) {
-    android.graphics.drawable.GradientDrawable swatch =
-        new android.graphics.drawable.GradientDrawable();
-    swatch.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-    swatch.setColor(color);
-    swatch.setStroke(2, 0xFF888888);
-    int size = (int) (28 * getResources().getDisplayMetrics().density);
-    swatch.setSize(size, size);
-    pref.setIcon(swatch);
-    pref.setSummary(String.format("#%06X", color & 0xFFFFFF));
+  private void applyOrder() {
+    int order = 10;
+    for (SkSectionCategory s : orderedSections()) s.setOrder(order++);
+  }
+
+  /** The colour picker of one role; its Default button gives the role back its default. */
+  private void pickRole(final SkRolePreference row) {
+    final Context ctx = requireContext();
+    final SkRole role = row.role();
+    final int now = SkRoles.get(ctx, role);
+    ColorPickerDialog.show(
+        ctx,
+        row.getTitle() == null ? "" : row.getTitle().toString(),
+        now,
+        color -> {
+          // the picker is opaque; a role that is see-through by design keeps its alpha
+          int alpha = role.kind == SkRole.Kind.ALPHA ? (now & 0xFF000000) : 0xFF000000;
+          SkRoles.set(ctx, role, alpha | (color & 0x00FFFFFF));
+          requireActivity().recreate();
+        },
+        () -> {
+          SkRoles.reset(ctx, role);
+          requireActivity().recreate();
+        });
   }
 }

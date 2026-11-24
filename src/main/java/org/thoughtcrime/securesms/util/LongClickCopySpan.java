@@ -68,7 +68,8 @@ public class LongClickCopySpan extends ClickableSpan {
           .show();
     } else {
       String preparedUrl = prepareUrl(url);
-      new AlertDialog.Builder(context)
+      AlertDialog.Builder builder = new AlertDialog.Builder(context);
+      builder
           .setTitle(preparedUrl)
           .setItems(
               new CharSequence[] {context.getString(R.string.menu_copy_to_clipboard)},
@@ -80,8 +81,12 @@ public class LongClickCopySpan extends ClickableSpan {
                         Toast.LENGTH_SHORT)
                     .show();
               })
-          .setNegativeButton(R.string.cancel, null)
-          .show();
+          .setNegativeButton(R.string.cancel, null);
+      // shiroikuma fork: the action row is a full-width icon pill, like the row of a menu
+      org.thoughtcrime.securesms.shiroikuma.SkPills.actionList(
+          builder.show(),
+          org.thoughtcrime.securesms.shiroikuma.SkIcons.Icon.COPY,
+          org.thoughtcrime.securesms.shiroikuma.SkIcons.Does.SHARE);
     }
   }
 

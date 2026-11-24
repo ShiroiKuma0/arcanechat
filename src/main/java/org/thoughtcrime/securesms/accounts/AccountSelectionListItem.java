@@ -118,10 +118,16 @@ public class AccountSelectionListItem extends LinearLayout {
     updateUnreadIndicator(unreadCount, isMuted);
     setText(name, addrOrTag);
 
+    // shiroikuma fork: a pill menu instead of the platform's context menu.
     if (accountId != DcContact.DC_CONTACT_ID_ADD_ACCOUNT) {
-      fragment.registerForContextMenu(this);
+      setOnLongClickListener(
+          v -> {
+            fragment.showAccountMenu(this);
+            return true;
+          });
     } else {
-      fragment.unregisterForContextMenu(this);
+      setOnLongClickListener(null);
+      setLongClickable(false);
     }
   }
 

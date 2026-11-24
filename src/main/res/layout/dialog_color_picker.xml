@@ -22,7 +22,7 @@
         android:inputType="textNoSuggestions"
         android:maxLength="7"
         android:hint="#RRGGBB"
-        android:textColor="?attr/conversation_list_item_contact_color"
+        android:textColor="@color/sk_role_dialog_text"
         android:layout_marginBottom="8dp" />
 
     <LinearLayout

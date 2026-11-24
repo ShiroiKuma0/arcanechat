@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- shiroikuma fork: what an action row of the UI page is. -->
+    <declare-styleable name="SkActionPreference">
+        <attr name="skMain" format="boolean" />
+        <attr name="skOpens" format="boolean" />
+        <attr name="skDestructive" format="boolean" />
+    </declare-styleable>
+</resources>

@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Aa Bb Cc 123"
-        android:textColor="?attr/conversation_list_item_contact_color"
+        android:textColor="@color/sk_role_dialog_text"
         android:textSize="22sp"
         android:gravity="center"
         android:paddingTop="8dp"
@@ -23,7 +23,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Family" />
+        android:text="@string/sk_font_family" />
     <Spinner
         android:id="@+id/font_family"
         android:layout_width="match_parent"
@@ -33,7 +33,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Weight" />
+        android:text="@string/sk_font_weight" />
     <Spinner
         android:id="@+id/font_weight"
         android:layout_width="match_parent"
@@ -48,7 +48,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Size (sp)" />
+            android:text="@string/sk_font_size" />
         <EditText
             android:id="@+id/font_size_value"
             android:layout_width="0dp"
@@ -57,8 +57,8 @@
             android:inputType="number"
             android:maxLength="3"
             android:gravity="end"
-            android:hint="Default"
-            android:textColor="?attr/conversation_list_item_contact_color" />
+            android:hint="@string/sk_default"
+            android:textColor="@color/sk_role_dialog_text" />
     </LinearLayout>
     <SeekBar
         android:id="@+id/font_size"

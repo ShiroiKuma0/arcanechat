@@ -4,7 +4,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#FFFF00" />
+            <solid android:color="@color/sk_role_compose_frame" />
         </shape>
     </item>
     <item
@@ -13,7 +13,7 @@
         android:left="2dp"
         android:right="2dp">
         <shape android:shape="rectangle">
-            <solid android:color="@color/gray95" />
+            <solid android:color="@color/sk_role_compose_ground" />
         </shape>
     </item>
 </layer-list>

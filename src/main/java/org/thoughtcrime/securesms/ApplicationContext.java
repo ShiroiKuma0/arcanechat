@@ -147,6 +147,8 @@ public class ApplicationContext extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
+    // shiroikuma fork: the colour roles go over the resources before the first screen inflates.
+    org.thoughtcrime.securesms.shiroikuma.SkPalette.install(this);
 
     Thread.setDefaultUncaughtExceptionHandler(
         (thread, throwable) -> {

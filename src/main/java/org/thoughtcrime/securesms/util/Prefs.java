@@ -150,23 +150,10 @@ public class Prefs {
     return getIntegerPreference(context, PROFILE_AVATAR_ID_PREF, 0);
   }
 
-  // shiroikuma fork (Step 2): configurable colour roles.
-  public static int getMessageTextColor(Context context) {
-    return getIntegerPreference(context, COLOR_MESSAGE_TEXT_PREF, COLOR_YELLOW);
-  }
-
-  public static void setMessageTextColor(Context context, int color) {
-    setIntegerPreference(context, COLOR_MESSAGE_TEXT_PREF, color);
-  }
-
-  // shiroikuma fork (Step 4b): accent preset key (drives colorAccent/control attrs + popup colours
-  // via a theme overlay applied in DynamicTheme). Default "yellow" = the Step 1 look.
-  public static String getAccent(Context context) {
-    return getStringPreference(context, ACCENT_PREF, "yellow");
-  }
-
-  public static void setAccent(Context context, String value) {
-    setStringPreference(context, ACCENT_PREF, value);
+  // shiroikuma fork: the colours of Steps 2-10 are colour roles now (shiroikuma/SkRole), stored
+  // under the same keys; these getters stay for the sites that draw the surfaces.
+  private static int role(Context context, org.thoughtcrime.securesms.shiroikuma.SkRole role) {
+    return org.thoughtcrime.securesms.shiroikuma.SkRoles.get(context, role);
   }
 
   // shiroikuma fork (Step 6): chat-list row style ("cards" default = the Step 5 look).
@@ -178,97 +165,48 @@ public class Prefs {
     setStringPreference(context, CHATLIST_STYLE_PREF, value);
   }
 
-  // Direction-aware overloads (Step 4). Default to the legacy shared value above.
   public static int getMessageTextColor(Context context, boolean outgoing) {
-    return getIntegerPreference(
+    return role(
         context,
-        outgoing ? COLOR_MSG_TEXT_OUT_PREF : COLOR_MSG_TEXT_IN_PREF,
-        getMessageTextColor(context));
-  }
-
-  public static void setMessageTextColor(Context context, boolean outgoing, int color) {
-    setIntegerPreference(context, outgoing ? COLOR_MSG_TEXT_OUT_PREF : COLOR_MSG_TEXT_IN_PREF, color);
+        outgoing
+            ? org.thoughtcrime.securesms.shiroikuma.SkRole.MSG_TEXT_OUT
+            : org.thoughtcrime.securesms.shiroikuma.SkRole.MSG_TEXT_IN);
   }
 
   public static int getBubbleFillColor(Context context, boolean outgoing) {
-    return getIntegerPreference(
+    return role(
         context,
-        outgoing ? COLOR_BUBBLE_FILL_OUT_PREF : COLOR_BUBBLE_FILL_IN_PREF,
-        getBubbleFillColor(context));
-  }
-
-  public static void setBubbleFillColor(Context context, boolean outgoing, int color) {
-    setIntegerPreference(
-        context, outgoing ? COLOR_BUBBLE_FILL_OUT_PREF : COLOR_BUBBLE_FILL_IN_PREF, color);
+        outgoing
+            ? org.thoughtcrime.securesms.shiroikuma.SkRole.BUBBLE_FILL_OUT
+            : org.thoughtcrime.securesms.shiroikuma.SkRole.BUBBLE_FILL_IN);
   }
 
   public static int getBubbleBorderColor(Context context, boolean outgoing) {
-    return getIntegerPreference(
+    return role(
         context,
-        outgoing ? COLOR_BUBBLE_BORDER_OUT_PREF : COLOR_BUBBLE_BORDER_IN_PREF,
-        getBubbleBorderColor(context));
-  }
-
-  public static void setBubbleBorderColor(Context context, boolean outgoing, int color) {
-    setIntegerPreference(
-        context, outgoing ? COLOR_BUBBLE_BORDER_OUT_PREF : COLOR_BUBBLE_BORDER_IN_PREF, color);
-  }
-
-  public static int getBubbleFillColor(Context context) {
-    return getIntegerPreference(context, COLOR_BUBBLE_FILL_PREF, COLOR_BLACK);
-  }
-
-  public static void setBubbleFillColor(Context context, int color) {
-    setIntegerPreference(context, COLOR_BUBBLE_FILL_PREF, color);
-  }
-
-  public static int getBubbleBorderColor(Context context) {
-    return getIntegerPreference(context, COLOR_BUBBLE_BORDER_PREF, COLOR_YELLOW);
-  }
-
-  public static void setBubbleBorderColor(Context context, int color) {
-    setIntegerPreference(context, COLOR_BUBBLE_BORDER_PREF, color);
+        outgoing
+            ? org.thoughtcrime.securesms.shiroikuma.SkRole.BUBBLE_BORDER_OUT
+            : org.thoughtcrime.securesms.shiroikuma.SkRole.BUBBLE_BORDER_IN);
   }
 
   public static int getConversationBackgroundColor(Context context) {
-    return getIntegerPreference(context, COLOR_CONVERSATION_BG_PREF, COLOR_BLACK);
-  }
-
-  public static void setConversationBackgroundColor(Context context, int color) {
-    setIntegerPreference(context, COLOR_CONVERSATION_BG_PREF, color);
+    return role(context, org.thoughtcrime.securesms.shiroikuma.SkRole.CONV_BACKGROUND);
   }
 
   public static int getListTitleColor(Context context) {
-    return getIntegerPreference(context, COLOR_LIST_TITLE_PREF, COLOR_YELLOW);
-  }
-
-  public static void setListTitleColor(Context context, int color) {
-    setIntegerPreference(context, COLOR_LIST_TITLE_PREF, color);
+    return role(context, org.thoughtcrime.securesms.shiroikuma.SkRole.LIST_TITLE);
   }
 
   public static int getListPreviewColor(Context context) {
-    return getIntegerPreference(context, COLOR_LIST_PREVIEW_PREF, COLOR_YELLOW);
+    return role(context, org.thoughtcrime.securesms.shiroikuma.SkRole.LIST_PREVIEW);
   }
 
-  public static void setListPreviewColor(Context context, int color) {
-    setIntegerPreference(context, COLOR_LIST_PREVIEW_PREF, color);
-  }
-
-  // shiroikuma fork (Step 10): chat-list row date/time colour (default yellow = the Step 1 look).
   public static int getListDateColor(Context context) {
-    return getIntegerPreference(context, COLOR_LIST_DATE_PREF, COLOR_YELLOW);
-  }
-
-  public static void setListDateColor(Context context, int color) {
-    setIntegerPreference(context, COLOR_LIST_DATE_PREF, color);
+    return role(context, org.thoughtcrime.securesms.shiroikuma.SkRole.LIST_DATE);
   }
 
   public static int getFabColor(Context context) {
-    return getIntegerPreference(context, COLOR_FAB_PREF, COLOR_YELLOW);
-  }
-
-  public static void setFabColor(Context context, int color) {
-    setIntegerPreference(context, COLOR_FAB_PREF, color);
+    return role(context, org.thoughtcrime.securesms.shiroikuma.SkRole.FAB_RING);
   }
 
   // shiroikuma fork (Step 11): configurable delivery ticks. Size is shared by the chat footer and
@@ -300,12 +238,6 @@ public class Prefs {
     return "pref_ticks_glyph_" + state;
   }
 
-  public static int getTickColorDefault(String state) {
-    return TICK_SENDING.equals(state)
-        ? COLOR_BLUE
-        : TICK_FAILED.equals(state) ? COLOR_RED : COLOR_YELLOW;
-  }
-
   public static String getTickGlyphDefault(String state) {
     switch (state) {
       case TICK_SENDING:
@@ -324,12 +256,24 @@ public class Prefs {
     }
   }
 
-  public static int getTickColor(Context context, String state) {
-    return getIntegerPreference(context, tickColorKey(state), getTickColorDefault(state));
+  public static org.thoughtcrime.securesms.shiroikuma.SkRole tickRole(String state) {
+    switch (state) {
+      case TICK_SENDING:
+        return org.thoughtcrime.securesms.shiroikuma.SkRole.TICK_SENDING;
+      case TICK_SENT:
+        return org.thoughtcrime.securesms.shiroikuma.SkRole.TICK_SENT;
+      case TICK_RECEIVED:
+        return org.thoughtcrime.securesms.shiroikuma.SkRole.TICK_RECEIVED;
+      case TICK_RECEIVED_ALL:
+        return org.thoughtcrime.securesms.shiroikuma.SkRole.TICK_RECEIVED_ALL;
+      case TICK_FAILED:
+      default:
+        return org.thoughtcrime.securesms.shiroikuma.SkRole.TICK_FAILED;
+    }
   }
 
-  public static void setTickColor(Context context, String state, int color) {
-    setIntegerPreference(context, tickColorKey(state), color);
+  public static int getTickColor(Context context, String state) {
+    return role(context, tickRole(state));
   }
 
   public static String getTickGlyph(Context context, String state) {
@@ -414,23 +358,8 @@ public class Prefs {
   // reproducing the Step 1 yellow-on-black look. The user's picked custom-font *files* list
   // (pref_font_files) is intentionally left intact - only the per-category assignments are cleared.
   public static void resetShiroikumaUi(Context context) {
-    // colour roles (legacy single-value + direction-aware splits + chat-list + fab)
-    setMessageTextColor(context, COLOR_YELLOW);
-    setBubbleFillColor(context, COLOR_BLACK);
-    setBubbleBorderColor(context, COLOR_YELLOW);
-    setMessageTextColor(context, false, COLOR_YELLOW);
-    setMessageTextColor(context, true, COLOR_YELLOW);
-    setBubbleFillColor(context, false, COLOR_BLACK);
-    setBubbleFillColor(context, true, COLOR_BLACK);
-    setBubbleBorderColor(context, false, COLOR_YELLOW);
-    setBubbleBorderColor(context, true, COLOR_YELLOW);
-    setConversationBackgroundColor(context, COLOR_BLACK);
-    setListTitleColor(context, COLOR_YELLOW);
-    setListPreviewColor(context, COLOR_YELLOW);
-    setListDateColor(context, COLOR_YELLOW);
-    setFabColor(context, COLOR_YELLOW);
-    // accent preset + chat-list row style
-    setAccent(context, "yellow");
+    // every colour role back to its default (the two primaries and what derives from them)
+    org.thoughtcrime.securesms.shiroikuma.SkRoles.resetAll(context);
     setChatListStyle(context, CHATLIST_CARDS);
     // delivery ticks: size, per-state colour + glyph, animation, group opt-in
     setTickSize(context, TICK_SIZE_DEFAULT);
@@ -438,7 +367,6 @@ public class Prefs {
     setTickGroupAll(context, false);
     for (String state :
         new String[] {TICK_SENDING, TICK_SENT, TICK_RECEIVED, TICK_RECEIVED_ALL, TICK_FAILED}) {
-      setTickColor(context, state, getTickColorDefault(state));
       setTickGlyph(context, state, getTickGlyphDefault(state));
     }
     // per-category fonts back to "inherit"
